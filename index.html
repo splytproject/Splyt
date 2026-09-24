@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-zinc-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CryptoShare — Dashboard</title>
+  <meta name="description" content="Earn points and receive a share of CryptoShare ad revenue." />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts: Chakra Petch (display), IBM Plex Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Chakra Petch"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Faint circuit grid behind the page */
+    body {
+      background-color: #18181b; /* zinc-900 */
+      background-image:
+        linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    /* Clipped-corner panel shape for the cyber look */
+    .notch {
+      clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen font-sans text-zinc-300 antialiased">
+
+  <!-- Skip link for keyboard users -->
+  <a href="#main"
+     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-emerald-500 focus:px-4 focus:py-2 focus:font-semibold focus:text-zinc-950">
+    Skip to main content
+  </a>
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-900/85 backdrop-blur"
+          style="padding-top: env(safe-area-inset-top, 0px);">
+    <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6" aria-label="Primary">
+      <!-- Logo placeholder -->
+      <a href="#" class="flex items-center gap-2.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+        <span aria-hidden="true"
+              class="grid h-8 w-8 place-items-center border border-emerald-400/60 bg-emerald-400/10 font-display text-sm font-bold text-emerald-400 [clip-path:polygon(0_0,75%_0,100%_25%,100%_100%,25%_100%,0_75%)]">
+          CS
+        </span>
+        <span class="font-display text-lg font-semibold tracking-wide text-zinc-100">CryptoShare</span>
+      </a>
+
+      <div class="flex items-center gap-2 sm:gap-6">
+        <a href="#main" aria-current="page"
+           class="rounded px-2 py-1 text-sm font-medium text-emerald-400 underline decoration-emerald-400/40 underline-offset-8 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+          Dashboard
+        </a>
+        <button type="button"
+                class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+          Login / Signup
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ============ TOP BANNER AD (728x90) ============ -->
+  <div class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
+    <aside aria-label="Sponsored Advertisement" class="flex justify-center">
+      <div class="flex aspect-[728/90] w-full max-w-[728px] flex-col items-center justify-center border border-dashed border-zinc-600 bg-zinc-800 text-center">
+        <span class="text-xs font-medium text-zinc-400 sm:text-sm">Sponsored Advertisement</span>
+        <span class="hidden text-[11px] text-zinc-500 sm:block">728 × 90</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ MAIN GRID ============ -->
+  <main id="main" class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_300px]">
+
+    <!-- Left column: dashboard + info -->
+    <div class="flex flex-col gap-6">
+
+      <!-- Main Dashboard Card -->
+      <section aria-labelledby="dashboard-heading"
+               class="notch relative bg-zinc-800/70 p-6 ring-1 ring-inset ring-zinc-700 sm:p-8">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 id="dashboard-heading" class="font-display text-2xl font-semibold text-zinc-50">Your dashboard</h1>
+            <p class="mt-1 text-sm text-zinc-400">
+              Signed in as
+              <span class="font-medium text-zinc-200">satoshi.demo@example.com</span>
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+            Cycle active
+          </span>
+        </div>
+
+        <dl class="mt-8 grid gap-4 sm:grid-cols-2">
+          <!-- Points this cycle -->
+          <div class="border-l-2 border-emerald-400 bg-zinc-900/60 px-5 py-4">
+            <dt class="text-sm text-zinc-400">Your Points this Cycle</dt>
+            <dd id="cycle-points" class="mt-2 font-display text-5xl font-bold tabular-nums text-emerald-400" aria-live="polite">0</dd>
+            <dd class="mt-2 text-xs text-zinc-500">Resets when the payout cycle ends.</dd>
+          </div>
+
+          <!-- All-time points -->
+          <div class="border-l-2 border-zinc-600 bg-zinc-900/60 px-5 py-4">
+            <dt class="text-sm text-zinc-400">All-Time Points</dt>
+            <dd id="alltime-points" class="mt-2 font-display text-5xl font-bold tabular-nums text-zinc-100">0</dd>
+            <dd class="mt-2 text-xs text-zinc-500">Every point you've earned since joining.</dd>
+          </div>
+        </dl>
+
+        <!-- Earning progress -->
+        <div class="mt-8">
+          <div class="flex items-baseline justify-between gap-3 text-sm">
+            <span id="earn-label" class="font-medium text-zinc-200">Earning your next point</span>
+            <span id="earn-status" class="tabular-nums text-zinc-400">30s left</span>
+          </div>
+          <div id="earn-bar" role="progressbar" aria-label="Progress toward next point"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+               class="relative mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-900 ring-1 ring-inset ring-zinc-700">
+            <div id="earn-fill" class="h-full w-0 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)]"></div>
+          </div>
+          <p class="mt-2 text-xs text-zinc-500">
+            Keep this tab open and visible. Progress pauses while the tab is in the background.
+          </p>
+        </div>
+
+        <!-- Screen-reader announcement for new points -->
+        <p id="sr-announce" class="sr-only" aria-live="polite"></p>
+      </section>
+
+      <!-- Information Card -->
+      <section aria-labelledby="revshare-heading"
+               class="rounded-lg border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 to-transparent p-6 sm:p-8">
+        <h2 id="revshare-heading" class="font-display text-xl font-semibold text-zinc-50">How the revenue share works</h2>
+        <p class="mt-3 max-w-prose text-base leading-relaxed text-zinc-200">
+          We distribute <strong class="font-semibold text-emerald-300">50% of all ad earnings</strong>
+          to users proportionally based on points!
+        </p>
+
+        <!-- Visual split bar -->
+        <div class="mt-6" role="img" aria-label="Ad earnings split: 50 percent to users, 50 percent to platform">
+          <div class="flex h-3 overflow-hidden rounded-full bg-zinc-700">
+            <div class="w-1/2 bg-emerald-400"></div>
+          </div>
+          <div class="mt-2 flex justify-between text-xs text-zinc-400">
+            <span><span class="text-emerald-300">50%</span> shared with users</span>
+            <span>50% runs the platform</span>
+          </div>
+        </div>
+
+        <p class="mt-6 max-w-prose text-sm leading-relaxed text-zinc-400">
+          Your payout equals your share of the cycle's total points. If you hold 2% of all points
+          this cycle, you receive 2% of the user pool.
+        </p>
+      </section>
+    </div>
+
+    <!-- Right column: sidebar ad (300x250) -->
+    <aside aria-label="Sponsored Advertisement" class="flex justify-center lg:block">
+      <div class="lg:sticky lg:top-24">
+        <div class="flex h-[250px] w-[300px] max-w-full flex-col items-center justify-center border border-dashed border-zinc-600 bg-zinc-800 text-center">
+          <span class="text-sm font-medium text-zinc-400">Sponsored Advertisement</span>
+          <span class="mt-1 text-[11px] text-zinc-500">300 × 250</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="border-t border-zinc-800">
+    <div class="mx-auto max-w-6xl px-4 py-6 text-xs text-zinc-500 sm:px-6">
+      © 2026 CryptoShare. Points have no cash value outside payout cycles.
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const INTERVAL_MS = 30000;          // 30 seconds of active time per point
+      const STORAGE_KEY = 'cryptoshare-session';
+
+      // ---- Local state (volatile: sessionStorage clears when the tab closes) ----
+      const state = {
+        userPoints: 0,        // points this cycle
+        allTimePoints: 0,     // mocked all-time counter
+        lastClaimTime: null,  // ms timestamp of the last awarded point
+        activeMs: 0,          // active time accumulated toward the next point
+      };
+
+      const store = {
+        load() {
+          try {
+            const raw = sessionStorage.getItem(STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+          } catch { return null; }
+        },
+        save() {
+          try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* storage unavailable: stay in memory */ }
+        },
+      };
+
+      // ---- DOM ----
+      const el = {
+        cycle: document.getElementById('cycle-points'),
+        allTime: document.getElementById('alltime-points'),
+        bar: document.getElementById('earn-bar'),
+        fill: document.getElementById('earn-fill'),
+        label: document.getElementById('earn-label'),
+        status: document.getElementById('earn-status'),
+        announce: document.getElementById('sr-announce'),
+      };
+
+      // ---- Anti-cheat on load: never award points just for loading/refreshing ----
+      const saved = store.load();
+      if (saved) {
+        state.userPoints = Number(saved.userPoints) || 0;
+        state.allTimePoints = Number(saved.allTimePoints) || 0;
+        state.lastClaimTime = Number(saved.lastClaimTime) || null;
+        // Keep earned progress, but clamp it so it can never be complete on load.
+        state.activeMs = Math.min(Math.max(Number(saved.activeMs) || 0, 0), INTERVAL_MS - 1000);
+
+        const sinceLast = state.lastClaimTime ? Date.now() - state.lastClaimTime : Infinity;
+        if (sinceLast < INTERVAL_MS) {
+          el.label.textContent = 'Refresh detected. Picking up where you left off';
+          setTimeout(() => { el.label.textContent = 'Earning your next point'; }, 4000);
+        }
+      }
+
+      // A point can only be awarded if 30s of wall-clock time have also passed
+      // since the last claim. Active time can't exceed wall time, so this only
+      // blocks tampering (e.g. restored or edited progress), never honest users.
+      function canClaim(now) {
+        return state.lastClaimTime === null || now - state.lastClaimTime >= INTERVAL_MS;
+      }
+
+      function awardPoint(now) {
+        state.userPoints += 1;
+        state.allTimePoints += 1;
+        state.lastClaimTime = now;
+        state.activeMs = 0;
+        store.save();
+        renderPoints();
+        el.announce.textContent = `You earned a point. You have ${state.userPoints} this cycle.`;
+
+        // Brief highlight on the counter
+        el.cycle.classList.add('scale-110', 'text-emerald-300');
+        setTimeout(() => el.cycle.classList.remove('scale-110', 'text-emerald-300'), 400);
+      }
+
+      function renderPoints() {
+        el.cycle.textContent = state.userPoints.toLocaleString();
+        el.allTime.textContent = state.allTimePoints.toLocaleString();
+      }
+
+      let lastSecondsShown = null;
+      function renderProgress(paused) {
+        const pct = Math.min(state.activeMs / INTERVAL_MS, 1) * 100;
+        el.fill.style.width = pct + '%';
+        el.bar.setAttribute('aria-valuenow', Math.round(pct));
+
+        const secondsLeft = Math.ceil((INTERVAL_MS - state.activeMs) / 1000);
+        const text = paused ? 'Paused' : `${Math.max(secondsLeft, 0)}s left`;
+        if (text !== lastSecondsShown) {
+          el.status.textContent = text;
+          lastSecondsShown = text;
+        }
+      }
+
+      // ---- Continuous loop: counts only while the tab is visible ----
+      let lastFrame = performance.now();
+      let lastSave = 0;
+
+      function tick(frameTime) {
+        // Cap each step so a throttled or sleeping tab can't dump time in at once
+        const delta = Math.min(frameTime - lastFrame, 250);
+        lastFrame = frameTime;
+
+        const visible = document.visibilityState === 'visible';
+        if (visible) {
+          state.activeMs += delta;
+          if (state.activeMs >= INTERVAL_MS) {
+            const now = Date.now();
+            if (canClaim(now)) awardPoint(now);
+            else state.activeMs = INTERVAL_MS; // hold at full until allowed
+          }
+        }
+
+        renderProgress(!visible);
+
+        if (frameTime - lastSave > 1000) {  // persist progress about once a second
+          store.save();
+          lastSave = frameTime;
+        }
+        requestAnimationFrame(tick);
+      }
+
+      document.addEventListener('visibilitychange', () => {
+        lastFrame = performance.now();   // don't count time spent hidden
+        renderProgress(document.visibilityState !== 'visible');
+        store.save();
+      });
+      window.addEventListener('pagehide', store.save);
+
+      el.cycle.classList.add('transition', 'duration-300', 'origin-left');
+      renderPoints();
+      renderProgress(false);
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
