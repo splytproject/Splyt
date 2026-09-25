@@ -1,12 +1,15 @@
+
+
+
 <!DOCTYPE html>
 <html lang="en" class="bg-zinc-900">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>CryptoShare — Dashboard</title>
+  <title>SplytProject — Dashboard</title>
   <meta name="description" content="Earn points and receive a share of CryptoShare ad revenue." />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
 <script>
   const supabase = window.supabase.createClient(
     'https://tataonhqzyqgbnlcolxq.supabase.co',
@@ -36,11 +39,11 @@
   }
 </script>
 
-  
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS client via CDN (exposes window.supabase) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Fonts: Chakra Petch (display), IBM Plex Sans (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -59,104 +62,212 @@
   </script>
 
   <style>
-    /* Faint circuit grid behind the page */
     body {
-      background-color: #18181b; /* zinc-900 */
+      background-color: #18181b;
       background-image:
         linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(16, 185, 129, 0.04) 1px, transparent 1px);
       background-size: 32px 32px;
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
-    /* Clipped-corner panel shape for the cyber look */
     .notch {
       clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
     }
+    .field {
+      width: 100%;
+      border-radius: 0.375rem;
+      border: 1px solid #3f3f46;
+      background: #09090b;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.875rem;
+      color: #f4f4f5;
+    }
+    .field::placeholder { color: #71717a; }
+    .field:focus { outline: none; border-color: #34d399; box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.35); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; animation: none !important; }
     }
+    /* ---------- Ad slots ---------- */
+    .slot-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.375rem; }
+    .slot-label {
+      font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: #71717a;
+    }
+    .slot {
+      position: relative; overflow: hidden; max-width: 100%;
+      background: #27272a; border: 1px solid #3f3f46; border-radius: 0.25rem;
+    }
+    .slot--leaderboard { width: 728px; aspect-ratio: 728 / 90; }
+    .slot--rectangle   { width: 300px; height: 250px; }
+    /* The ad's own box: fixed at its native size, scaled down on narrow screens */
+    .slot-creative {
+      position: absolute; top: 0; left: 0; transform-origin: top left;
+      transform: scale(var(--slot-scale, 1));
+    }
+    .slot-creative iframe { display: block; border: 0; background: transparent; }
+    /* Shown only when the ad is blocked or fails to load */
+    .slot-fallback {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 0.5rem 1rem; text-align: center; font-size: 0.8125rem; line-height: 1.35;
+      color: #a7f3d0; background: repeating-linear-gradient(135deg, #27272a 0 12px, #2b2b30 12px 24px);
+    }
+    .slot-fallback[hidden] { display: none; }
   </style>
+  <script>
+    // Ad scripts call this from onerror="__slotFail(this)" if they can't load.
+    window.__slotFail = function (node) {
+      var slot = node && node.closest('[data-slot]');
+      if (slot) slot.setAttribute('data-slot-state', 'failed');
+    };
+  </script>
 </head>
 
 <body class="min-h-screen font-sans text-zinc-300 antialiased">
 
-  <!-- Skip link for keyboard users -->
   <a href="#main"
      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-emerald-500 focus:px-4 focus:py-2 focus:font-semibold focus:text-zinc-950">
     Skip to main content
   </a>
 
-  <!-- ============ NAVBAR ============ -->
+  <!-- ============ NAVBAR + AUTH AREA ============ -->
   <header class="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-900/85 backdrop-blur"
           style="padding-top: env(safe-area-inset-top, 0px);">
-    <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6" aria-label="Primary">
-      <!-- Logo placeholder -->
-      <a href="#" class="flex items-center gap-2.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
-        <span aria-hidden="true"
-              class="grid h-8 w-8 place-items-center border border-emerald-400/60 bg-emerald-400/10 font-display text-sm font-bold text-emerald-400 [clip-path:polygon(0_0,75%_0,100%_25%,100%_100%,25%_100%,0_75%)]">
-          CS
-        </span>
-        <span class="font-display text-lg font-semibold tracking-wide text-zinc-100">CryptoShare</span>
-      </a>
-
-      <div class="flex items-center gap-2 sm:gap-6">
-        <a href="#main" aria-current="page"
-           class="rounded px-2 py-1 text-sm font-medium text-emerald-400 underline decoration-emerald-400/40 underline-offset-8 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
-          Dashboard
+    <div class="relative mx-auto max-w-6xl">
+      <nav class="flex h-16 items-center justify-between gap-4 px-4 sm:px-6" aria-label="Primary">
+        <a href="#" class="flex items-center gap-2.5 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+          <span aria-hidden="true"
+                class="grid h-8 w-8 place-items-center border border-emerald-400/60 bg-emerald-400/10 font-display text-sm font-bold text-emerald-400 [clip-path:polygon(0_0,75%_0,100%_25%,100%_100%,25%_100%,0_75%)]">
+            CS
+          </span>
+          <span class="font-display text-lg font-semibold tracking-wide text-zinc-100">CryptoShare</span>
         </a>
-        <button type="button"
-                class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
-          Login / Signup
-        </button>
+
+        <div class="flex items-center gap-2 sm:gap-6">
+          <a href="#main" aria-current="page"
+             class="rounded px-2 py-1 text-sm font-medium text-emerald-400 underline decoration-emerald-400/40 underline-offset-8 hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+            Dashboard
+          </a>
+          <button id="auth-toggle" type="button" aria-expanded="false" aria-controls="auth-panel"
+                  class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+            Login / Signup
+          </button>
+        </div>
+      </nav>
+
+      <!-- Auth panel (drops down from the navbar) -->
+      <div id="auth-panel" hidden
+           class="absolute inset-x-0 top-full z-50 border-b border-zinc-800 bg-zinc-900 p-5 shadow-2xl shadow-black/50 sm:inset-x-auto sm:right-6 sm:mt-2 sm:w-96 sm:rounded-lg sm:border">
+
+        <!-- Logged-out: login / sign-up -->
+        <form id="auth-form" novalidate>
+          <h2 class="font-display text-lg font-semibold text-zinc-50">Log in or create an account</h2>
+          <div class="mt-4 space-y-3">
+            <div>
+              <label for="auth-email" class="mb-1 block text-xs font-medium text-zinc-400">Email</label>
+              <input id="auth-email" type="email" autocomplete="email" required class="field" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label for="auth-password" class="mb-1 block text-xs font-medium text-zinc-400">Password</label>
+              <input id="auth-password" type="password" autocomplete="current-password" required minlength="8" class="field" placeholder="At least 8 characters" />
+            </div>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <button id="login-btn" type="submit"
+                    class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+              Log in
+            </button>
+            <button id="signup-btn" type="button"
+                    class="rounded-md border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+              Sign up
+            </button>
+          </div>
+        </form>
+
+        <!-- Logged-in: account + FaucetPay email -->
+        <form id="account-form" hidden novalidate>
+          <p class="text-xs text-zinc-400">Signed in as</p>
+          <p id="account-email" class="truncate text-sm font-medium text-zinc-100"></p>
+
+          <div class="mt-4">
+            <label for="faucetpay-email" class="mb-1 block text-xs font-medium text-zinc-400">FaucetPay email (for withdrawals)</label>
+            <div class="flex gap-2">
+              <input id="faucetpay-email" type="email" autocomplete="off" class="field" placeholder="faucetpay@example.com" />
+              <button id="faucetpay-save" type="submit"
+                      class="shrink-0 rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                Save
+              </button>
+            </div>
+            <p class="mt-1 text-xs text-zinc-500">Payouts go to this FaucetPay account. No ID required.</p>
+          </div>
+
+          <button id="logout-btn" type="button"
+                  class="mt-5 w-full rounded-md border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+            Log out
+          </button>
+        </form>
+
+        <p id="auth-message" class="mt-3 min-h-[1.25rem] text-sm" role="status" aria-live="polite"></p>
       </div>
-    </nav>
+    </div>
   </header>
 
   <!-- ============ TOP BANNER AD (728x90) ============ -->
   <div class="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-    <aside aria-label="Sponsored Advertisement" class="flex justify-center">
-      <div class="flex aspect-[728/90] w-full max-w-[728px] flex-col items-center justify-center border border-dashed border-zinc-600 bg-zinc-800 text-center">
-        <span class="text-xs font-medium text-zinc-400 sm:text-sm">Sponsored Advertisement</span>
-        <span class="hidden text-[11px] text-zinc-500 sm:block">728 × 90</span>
+    <aside class="slot-wrap" aria-label="Sponsored Advertisement">
+      <p class="slot-label">Sponsored Advertisement</p>
+      <div class="slot slot--leaderboard" data-slot data-width="728" data-height="90">
+        <div class="slot-creative">
+          <!-- ===== PASTE YOUR 728x90 AD CODE BELOW (replace this iframe) =====
+               A-ADS example: swap YOUR_UNIT_ID for your ad unit's number.
+               Script-based networks: paste their tag as-is and add
+               onerror="__slotFail(this)" to the <script> tag, e.g.
+               <script async src="https://example-adnetwork.com/tag.js" onerror="__slotFail(this)"></script> -->
+          <iframe data-aa="YOUR_UNIT_ID"
+                  src="https://ad.a-ads.com/YOUR_UNIT_ID?size=728x90"
+                  title="Sponsored advertisement"
+                  width="728" height="90" scrolling="no" loading="eager"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                  referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          <!-- ===== END AD CODE ===== -->
+        </div>
+        <div class="slot-fallback" data-slot-fallback hidden>
+          Please disable AdBlock to support the collective pool and earn rewards!
+        </div>
       </div>
     </aside>
   </div>
 
   <!-- ============ MAIN GRID ============ -->
   <main id="main" class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_300px]">
-
-    <!-- Left column: dashboard + info -->
     <div class="flex flex-col gap-6">
 
       <!-- Main Dashboard Card -->
       <section aria-labelledby="dashboard-heading"
                class="notch relative bg-zinc-800/70 p-6 ring-1 ring-inset ring-zinc-700 sm:p-8">
         <div class="flex flex-wrap items-start justify-between gap-3">
-          <div>
+          <div class="min-w-0">
             <h1 id="dashboard-heading" class="font-display text-2xl font-semibold text-zinc-50">Your dashboard</h1>
-            <p class="mt-1 text-sm text-zinc-400">
-              Signed in as
-              <span class="font-medium text-zinc-200">satoshi.demo@example.com</span>
+            <p class="mt-1 truncate text-sm text-zinc-400">
+              <span id="user-email-label">Not signed in</span>
+              <span id="user-email" class="font-medium text-zinc-200"></span>
             </p>
           </div>
-          <span class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
-            Cycle active
+          <span id="status-pill"
+                class="inline-flex items-center gap-2 rounded-full border border-zinc-600 bg-zinc-700/40 px-3 py-1 text-xs font-medium text-zinc-400">
+            <span id="status-dot" class="h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden="true"></span>
+            <span id="status-text">Signed out</span>
           </span>
         </div>
 
         <dl class="mt-8 grid gap-4 sm:grid-cols-2">
-          <!-- Points this cycle -->
           <div class="border-l-2 border-emerald-400 bg-zinc-900/60 px-5 py-4">
             <dt class="text-sm text-zinc-400">Your Points this Cycle</dt>
-            <dd id="cycle-points" class="mt-2 font-display text-5xl font-bold tabular-nums text-emerald-400" aria-live="polite">0</dd>
+            <dd id="cycle-points" class="mt-2 origin-left font-display text-5xl font-bold tabular-nums text-emerald-400 transition duration-300">–</dd>
             <dd class="mt-2 text-xs text-zinc-500">Resets when the payout cycle ends.</dd>
           </div>
-
-          <!-- All-time points -->
           <div class="border-l-2 border-zinc-600 bg-zinc-900/60 px-5 py-4">
             <dt class="text-sm text-zinc-400">All-Time Points</dt>
-            <dd id="alltime-points" class="mt-2 font-display text-5xl font-bold tabular-nums text-zinc-100">0</dd>
+            <dd id="alltime-points" class="mt-2 font-display text-5xl font-bold tabular-nums text-zinc-100">–</dd>
             <dd class="mt-2 text-xs text-zinc-500">Every point you've earned since joining.</dd>
           </div>
         </dl>
@@ -164,8 +275,8 @@
         <!-- Earning progress -->
         <div class="mt-8">
           <div class="flex items-baseline justify-between gap-3 text-sm">
-            <span id="earn-label" class="font-medium text-zinc-200">Earning your next point</span>
-            <span id="earn-status" class="tabular-nums text-zinc-400">30s left</span>
+            <span id="earn-label" class="font-medium text-zinc-200">Log in to start earning</span>
+            <span id="earn-status" class="tabular-nums text-zinc-400"></span>
           </div>
           <div id="earn-bar" role="progressbar" aria-label="Progress toward next point"
                aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
@@ -177,7 +288,6 @@
           </p>
         </div>
 
-        <!-- Screen-reader announcement for new points -->
         <p id="sr-announce" class="sr-only" aria-live="polite"></p>
       </section>
 
@@ -189,8 +299,6 @@
           We distribute <strong class="font-semibold text-emerald-300">50% of all ad earnings</strong>
           to users proportionally based on points!
         </p>
-
-        <!-- Visual split bar -->
         <div class="mt-6" role="img" aria-label="Ad earnings split: 50 percent to users, 50 percent to platform">
           <div class="flex h-3 overflow-hidden rounded-full bg-zinc-700">
             <div class="w-1/2 bg-emerald-400"></div>
@@ -200,7 +308,6 @@
             <span>50% runs the platform</span>
           </div>
         </div>
-
         <p class="mt-6 max-w-prose text-sm leading-relaxed text-zinc-400">
           Your payout equals your share of the cycle's total points. If you hold 2% of all points
           this cycle, you receive 2% of the user pool.
@@ -208,12 +315,22 @@
       </section>
     </div>
 
-    <!-- Right column: sidebar ad (300x250) -->
-    <aside aria-label="Sponsored Advertisement" class="flex justify-center lg:block">
-      <div class="lg:sticky lg:top-24">
-        <div class="flex h-[250px] w-[300px] max-w-full flex-col items-center justify-center border border-dashed border-zinc-600 bg-zinc-800 text-center">
-          <span class="text-sm font-medium text-zinc-400">Sponsored Advertisement</span>
-          <span class="mt-1 text-[11px] text-zinc-500">300 × 250</span>
+    <!-- Sidebar ad (300x250) -->
+    <aside class="slot-wrap lg:sticky lg:top-24 lg:self-start" aria-label="Sponsored Advertisement">
+      <p class="slot-label">Sponsored Advertisement</p>
+      <div class="slot slot--rectangle" data-slot data-width="300" data-height="250">
+        <div class="slot-creative">
+          <!-- ===== PASTE YOUR 300x250 AD CODE BELOW (replace this iframe) ===== -->
+          <iframe data-aa="YOUR_UNIT_ID"
+                  src="https://ad.a-ads.com/YOUR_UNIT_ID?size=300x250"
+                  title="Sponsored advertisement"
+                  width="300" height="250" scrolling="no" loading="lazy"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                  referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          <!-- ===== END AD CODE ===== -->
+        </div>
+        <div class="slot-fallback" data-slot-fallback hidden>
+          Please disable AdBlock to support the collective pool and earn rewards!
         </div>
       </div>
     </aside>
@@ -226,136 +343,342 @@
   </footer>
 
   <script>
+    // Wrapped in an IIFE so our names can't collide with the library's global `supabase`.
     (() => {
-      const INTERVAL_MS = 30000;          // 30 seconds of active time per point
-      const STORAGE_KEY = 'cryptoshare-session';
+      // ================= CONFIG =================
+      // Paste your values from Supabase → Settings → API Keys.
+      // Use the publishable key (sb_publishable_...) or the legacy anon key. NEVER the secret key.
+      const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+      const SUPABASE_ANON_KEY = 'YOUR_PUBLISHABLE_OR_ANON_KEY';
 
-      // ---- Local state (volatile: sessionStorage clears when the tab closes) ----
-      const state = {
-        userPoints: 0,        // points this cycle
-        allTimePoints: 0,     // mocked all-time counter
-        lastClaimTime: null,  // ms timestamp of the last awarded point
-        activeMs: 0,          // active time accumulated toward the next point
-      };
+      const INTERVAL_MS = 30000; // 30s of visible time per claim (the server enforces this too)
 
-      const store = {
-        load() {
-          try {
-            const raw = sessionStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) : null;
-          } catch { return null; }
-        },
-        save() {
-          try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* storage unavailable: stay in memory */ }
-        },
-      };
-
-      // ---- DOM ----
+      // ================= DOM =================
+      const $ = (id) => document.getElementById(id);
       const el = {
-        cycle: document.getElementById('cycle-points'),
-        allTime: document.getElementById('alltime-points'),
-        bar: document.getElementById('earn-bar'),
-        fill: document.getElementById('earn-fill'),
-        label: document.getElementById('earn-label'),
-        status: document.getElementById('earn-status'),
-        announce: document.getElementById('sr-announce'),
+        toggle: $('auth-toggle'), panel: $('auth-panel'),
+        authForm: $('auth-form'), email: $('auth-email'), password: $('auth-password'),
+        loginBtn: $('login-btn'), signupBtn: $('signup-btn'),
+        accountForm: $('account-form'), accountEmail: $('account-email'),
+        faucetpay: $('faucetpay-email'), faucetpaySave: $('faucetpay-save'), logoutBtn: $('logout-btn'),
+        message: $('auth-message'),
+        userEmailLabel: $('user-email-label'), userEmail: $('user-email'),
+        statusPill: $('status-pill'), statusDot: $('status-dot'), statusText: $('status-text'),
+        cycle: $('cycle-points'), allTime: $('alltime-points'),
+        bar: $('earn-bar'), fill: $('earn-fill'), label: $('earn-label'), status: $('earn-status'),
+        announce: $('sr-announce'),
       };
 
-      // ---- Anti-cheat on load: never award points just for loading/refreshing ----
-      const saved = store.load();
-      if (saved) {
-        state.userPoints = Number(saved.userPoints) || 0;
-        state.allTimePoints = Number(saved.allTimePoints) || 0;
-        state.lastClaimTime = Number(saved.lastClaimTime) || null;
-        // Keep earned progress, but clamp it so it can never be complete on load.
-        state.activeMs = Math.min(Math.max(Number(saved.activeMs) || 0, 0), INTERVAL_MS - 1000);
+      // ================= STATE =================
+      const state = {
+        user: null,      // Supabase auth user
+        profile: null,   // row from public.profiles
+        activeMs: 0,     // visible time toward the next claim
+        claiming: false, // a claim request is in flight
+      };
 
-        const sinceLast = state.lastClaimTime ? Date.now() - state.lastClaimTime : Infinity;
-        if (sinceLast < INTERVAL_MS) {
-          el.label.textContent = 'Refresh detected. Picking up where you left off';
-          setTimeout(() => { el.label.textContent = 'Earning your next point'; }, 4000);
+      // ================= UI HELPERS =================
+      function setMessage(text, tone = 'info') {
+        el.message.textContent = text;
+        el.message.className = 'mt-3 min-h-[1.25rem] text-sm ' +
+          (tone === 'error' ? 'text-red-400' : tone === 'success' ? 'text-emerald-300' : 'text-zinc-400');
+      }
+
+      function setBusy(busy, ...buttons) {
+        buttons.forEach((b) => { b.disabled = busy; });
+      }
+
+      function openPanel(open) {
+        el.panel.hidden = !open;
+        el.toggle.setAttribute('aria-expanded', String(open));
+        if (open) {
+          const first = state.user ? el.faucetpay : el.email;
+          setTimeout(() => first.focus(), 0);
         }
       }
 
-      // A point can only be awarded if 30s of wall-clock time have also passed
-      // since the last claim. Active time can't exceed wall time, so this only
-      // blocks tampering (e.g. restored or edited progress), never honest users.
-      function canClaim(now) {
-        return state.lastClaimTime === null || now - state.lastClaimTime >= INTERVAL_MS;
+      function renderProfile() {
+        const p = state.profile;
+        el.cycle.textContent = p ? p.points_current_cycle.toLocaleString() : '–';
+        el.allTime.textContent = p ? p.points_all_time.toLocaleString() : '–';
+        if (p && document.activeElement !== el.faucetpay) el.faucetpay.value = p.faucetpay_email || '';
       }
 
-      function awardPoint(now) {
-        state.userPoints += 1;
-        state.allTimePoints += 1;
-        state.lastClaimTime = now;
+      function renderAuthState() {
+        const signedIn = !!state.user;
+        el.authForm.hidden = signedIn;
+        el.accountForm.hidden = !signedIn;
+        el.toggle.textContent = signedIn ? 'Account' : 'Login / Signup';
+
+        el.userEmailLabel.textContent = signedIn ? 'Signed in as ' : 'Not signed in';
+        el.userEmail.textContent = signedIn ? state.user.email : '';
+        el.accountEmail.textContent = signedIn ? state.user.email : '';
+
+        el.statusText.textContent = signedIn ? 'Earning' : 'Signed out';
+        el.statusPill.className = 'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium border ' +
+          (signedIn ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                    : 'border-zinc-600 bg-zinc-700/40 text-zinc-400');
+        el.statusDot.className = 'h-1.5 w-1.5 rounded-full ' + (signedIn ? 'bg-emerald-400' : 'bg-zinc-500');
+
+        if (!signedIn) {
+          state.profile = null;
+          state.activeMs = 0;
+          el.label.textContent = 'Log in to start earning';
+        } else {
+          el.label.textContent = 'Earning your next point';
+        }
+        renderProfile();
+        renderProgress();
+      }
+
+      // ================= SUPABASE =================
+      const configured = !SUPABASE_URL.includes('YOUR-PROJECT') && !SUPABASE_ANON_KEY.startsWith('YOUR_');
+      if (!window.supabase || !configured) {
+        setMessage(!window.supabase
+          ? 'Could not load the Supabase library. Check your connection.'
+          : 'Setup needed: add your SUPABASE_URL and key at the top of the script.', 'error');
+        setBusy(true, el.loginBtn, el.signupBtn);
+        renderAuthState();
+        wirePanel();
+        return;
+      }
+
+      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      function readCredentials() {
+        const email = el.email.value.trim();
+        const password = el.password.value;
+        if (!email || !el.email.checkValidity()) { setMessage('Enter a valid email address.', 'error'); el.email.focus(); return null; }
+        if (password.length < 8) { setMessage('Password must be at least 8 characters.', 'error'); el.password.focus(); return null; }
+        return { email, password };
+      }
+
+      async function handleSignUp() {
+        const creds = readCredentials();
+        if (!creds) return;
+        setBusy(true, el.loginBtn, el.signupBtn);
+        setMessage('Creating your account…');
+        const { data, error } = await client.auth.signUp({
+          ...creds,
+          options: { emailRedirectTo: window.location.origin + window.location.pathname },
+        });
+        setBusy(false, el.loginBtn, el.signupBtn);
+        if (error) return setMessage(error.message, 'error');
+        if (!data.session) {
+          setMessage('Check your inbox to confirm your email, then log in.', 'success');
+        }
+        // If email confirmation is off, onAuthStateChange signs the user in.
+      }
+
+      async function handleLogin() {
+        const creds = readCredentials();
+        if (!creds) return;
+        setBusy(true, el.loginBtn, el.signupBtn);
+        setMessage('Logging in…');
+        const { error } = await client.auth.signInWithPassword(creds);
+        setBusy(false, el.loginBtn, el.signupBtn);
+        if (error) setMessage(error.message, 'error');
+        // Success is handled in onAuthStateChange.
+      }
+
+      async function handleLogout() {
+        setBusy(true, el.logoutBtn);
+        await client.auth.signOut();
+        setBusy(false, el.logoutBtn);
+        setMessage('You have been logged out.');
+      }
+
+      async function loadProfile() {
+        if (!state.user) return;
+        const { data, error } = await client
+          .from('profiles')
+          .select('faucetpay_email, points_current_cycle, points_all_time')
+          .eq('id', state.user.id)
+          .single();
+        if (error) {
+          setMessage('Could not load your points: ' + error.message, 'error');
+          return;
+        }
+        state.profile = data;
+        renderProfile();
+        if (!data.faucetpay_email) {
+          setMessage('Add your FaucetPay email so we can pay you.', 'info');
+          openPanel(true);
+        }
+      }
+
+      async function saveFaucetPayEmail() {
+        const value = el.faucetpay.value.trim();
+        if (value && !el.faucetpay.checkValidity()) {
+          setMessage('That doesn’t look like a valid email.', 'error');
+          return;
+        }
+        setBusy(true, el.faucetpaySave);
+        const { data, error } = await client
+          .from('profiles')
+          .update({ faucetpay_email: value || null })
+          .eq('id', state.user.id)
+          .select('faucetpay_email')
+          .single();
+        setBusy(false, el.faucetpaySave);
+        if (error) {
+          setMessage(error.code === '23514' ? 'That doesn’t look like a valid email.' : error.message, 'error');
+          return;
+        }
+        state.profile = { ...state.profile, faucetpay_email: data.faucetpay_email };
+        setMessage(value ? 'FaucetPay email saved.' : 'FaucetPay email removed.', 'success');
+      }
+
+      async function claimPoint() {
+        state.claiming = true;
+        el.label.textContent = 'Claiming your point…';
+        const { data, error } = await client.rpc('claim_point');
+        state.claiming = false;
+
+        if (!state.user) return; // logged out mid-request
+
+        if (error) {
+          // Server refused (too soon, network, etc.). Retry in a few seconds.
+          el.label.textContent = /too soon/i.test(error.message)
+            ? 'Syncing with the server…'
+            : 'Claim failed. Retrying shortly';
+          state.activeMs = INTERVAL_MS - 5000;
+          return;
+        }
+
+        state.profile.points_current_cycle = data;
+        state.profile.points_all_time += 1;
         state.activeMs = 0;
-        store.save();
-        renderPoints();
-        el.announce.textContent = `You earned a point. You have ${state.userPoints} this cycle.`;
-
-        // Brief highlight on the counter
-        el.cycle.classList.add('scale-110', 'text-emerald-300');
-        setTimeout(() => el.cycle.classList.remove('scale-110', 'text-emerald-300'), 400);
+        el.label.textContent = 'Earning your next point';
+        renderProfile();
+        el.announce.textContent = `You earned a point. You have ${data} this cycle.`;
+        el.cycle.classList.add('scale-110');
+        setTimeout(() => el.cycle.classList.remove('scale-110'), 400);
       }
 
-      function renderPoints() {
-        el.cycle.textContent = state.userPoints.toLocaleString();
-        el.allTime.textContent = state.allTimePoints.toLocaleString();
-      }
+      // Session changes: login, logout, token refresh, and restored sessions on page load.
+      client.auth.onAuthStateChange((event, session) => {
+        // Defer so Supabase calls don't run inside the auth callback.
+        setTimeout(async () => {
+          const wasSignedIn = !!state.user;
+          state.user = session?.user ?? null;
+          if (!state.user) { renderAuthState(); return; }
+          if (!wasSignedIn || event === 'USER_UPDATED') {
+            renderAuthState();
+            if (event === 'SIGNED_IN' && el.panel.hidden === false) setMessage('');
+            await loadProfile();
+            if (state.profile?.faucetpay_email) openPanel(false);
+          }
+        }, 0);
+      });
 
+      // ================= PROGRESS LOOP =================
       let lastSecondsShown = null;
-      function renderProgress(paused) {
-        const pct = Math.min(state.activeMs / INTERVAL_MS, 1) * 100;
+      function renderProgress() {
+        const pct = state.user ? Math.min(state.activeMs / INTERVAL_MS, 1) * 100 : 0;
         el.fill.style.width = pct + '%';
         el.bar.setAttribute('aria-valuenow', Math.round(pct));
 
-        const secondsLeft = Math.ceil((INTERVAL_MS - state.activeMs) / 1000);
-        const text = paused ? 'Paused' : `${Math.max(secondsLeft, 0)}s left`;
-        if (text !== lastSecondsShown) {
-          el.status.textContent = text;
-          lastSecondsShown = text;
+        let text = '';
+        if (state.user) {
+          if (document.visibilityState !== 'visible') text = 'Paused';
+          else if (state.claiming) text = '…';
+          else text = `${Math.max(Math.ceil((INTERVAL_MS - state.activeMs) / 1000), 0)}s left`;
         }
+        if (text !== lastSecondsShown) { el.status.textContent = text; lastSecondsShown = text; }
       }
 
-      // ---- Continuous loop: counts only while the tab is visible ----
       let lastFrame = performance.now();
-      let lastSave = 0;
+      function tick(now) {
+        const delta = Math.min(now - lastFrame, 250); // cap so a sleeping tab can't dump in time
+        lastFrame = now;
 
-      function tick(frameTime) {
-        // Cap each step so a throttled or sleeping tab can't dump time in at once
-        const delta = Math.min(frameTime - lastFrame, 250);
-        lastFrame = frameTime;
-
-        const visible = document.visibilityState === 'visible';
-        if (visible) {
-          state.activeMs += delta;
-          if (state.activeMs >= INTERVAL_MS) {
-            const now = Date.now();
-            if (canClaim(now)) awardPoint(now);
-            else state.activeMs = INTERVAL_MS; // hold at full until allowed
-          }
+        if (state.user && state.profile && document.visibilityState === 'visible' && !state.claiming) {
+          state.activeMs = Math.min(state.activeMs + delta, INTERVAL_MS);
+          if (state.activeMs >= INTERVAL_MS) claimPoint();
         }
-
-        renderProgress(!visible);
-
-        if (frameTime - lastSave > 1000) {  // persist progress about once a second
-          store.save();
-          lastSave = frameTime;
-        }
+        renderProgress();
         requestAnimationFrame(tick);
       }
 
-      document.addEventListener('visibilitychange', () => {
-        lastFrame = performance.now();   // don't count time spent hidden
-        renderProgress(document.visibilityState !== 'visible');
-        store.save();
-      });
-      window.addEventListener('pagehide', store.save);
+      document.addEventListener('visibilitychange', () => { lastFrame = performance.now(); renderProgress(); });
 
-      el.cycle.classList.add('transition', 'duration-300', 'origin-left');
-      renderPoints();
-      renderProgress(false);
+      // ================= EVENTS =================
+      el.authForm.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(); });
+      el.signupBtn.addEventListener('click', handleSignUp);
+      el.accountForm.addEventListener('submit', (e) => { e.preventDefault(); saveFaucetPayEmail(); });
+      el.logoutBtn.addEventListener('click', handleLogout);
+      wirePanel();
+
+      renderAuthState();
       requestAnimationFrame(tick);
+
+      // ================= PANEL OPEN/CLOSE =================
+      function wirePanel() {
+        el.toggle.addEventListener('click', () => openPanel(el.panel.hidden));
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !el.panel.hidden) { openPanel(false); el.toggle.focus(); }
+        });
+        document.addEventListener('click', (e) => {
+          if (!el.panel.hidden && !el.panel.contains(e.target) && !el.toggle.contains(e.target)) openPanel(false);
+        });
+      }
+    })();
+  </script>
+  <!-- Ad slot manager: scaling + blocked/failed detection -->
+  <script>
+    (() => {
+      const CHECK_AFTER_MS = 4000; // give ads time to render before deciding they're blocked
+      const slots = [...document.querySelectorAll('[data-slot]')];
+
+      function showFallback(slot) {
+        const creative = slot.querySelector('.slot-creative');
+        if (creative) creative.style.visibility = 'hidden';
+        slot.querySelector('[data-slot-fallback]').hidden = false;
+      }
+
+      // Scale fixed-size creatives down to fit narrow screens (e.g. 728px banner on a phone).
+      const ro = new ResizeObserver((entries) => {
+        for (const { target } of entries) {
+          const native = Number(target.dataset.width);
+          target.style.setProperty('--slot-scale', Math.min(target.clientWidth / native, 1));
+        }
+      });
+      slots.forEach((slot) => ro.observe(slot));
+
+      // Unconfigured placeholder units: skip the network request and show the fallback.
+      slots.forEach((slot) => {
+        const frame = slot.querySelector('iframe[data-aa]');
+        if (frame && !/^\d+$/.test(frame.dataset.aa)) {
+          frame.remove();
+          slot.setAttribute('data-slot-state', 'failed');
+        }
+      });
+
+      // Bait element: most blockers hide elements with these class names.
+      const bait = document.createElement('div');
+      bait.className = 'adsbox ad-banner adsbygoogle';
+      bait.setAttribute('aria-hidden', 'true');
+      bait.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;';
+      document.body.appendChild(bait);
+
+      setTimeout(() => {
+        const baitBlocked = !bait.isConnected || bait.offsetHeight === 0 ||
+          getComputedStyle(bait).display === 'none';
+        bait.remove();
+
+        slots.forEach((slot) => {
+          const creative = slot.querySelector('.slot-creative');
+          // Anything the ad code actually rendered (iframe, div, img...), ignoring scripts
+          const rendered = creative && [...creative.children].some((c) =>
+            c.tagName !== 'SCRIPT' && c.offsetWidth > 0 && c.offsetHeight > 0 &&
+            getComputedStyle(c).visibility !== 'hidden');
+
+          if (baitBlocked || !rendered || slot.dataset.slotState === 'failed') {
+            showFallback(slot);
+          }
+        });
+      }, CHECK_AFTER_MS);
     })();
   </script>
 </body>
