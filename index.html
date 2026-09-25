@@ -6,6 +6,37 @@
   <title>CryptoShare — Dashboard</title>
   <meta name="description" content="Earn points and receive a share of CryptoShare ad revenue." />
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabase = window.supabase.createClient(
+    'https://tataonhqzyqgbnlcolxq.supabase.co',
+    'sb_publishable_mWxoOhTCMjj0jC8pnWEuqA_YnpauM8O'
+  );
+
+  async function signUp(email, password) {
+    return supabase.auth.signUp({ email, password });
+  }
+  async function signIn(email, password) {
+    return supabase.auth.signInWithPassword({ email, password });
+  }
+  async function loadProfile() {
+    return supabase.from('profiles')
+      .select('faucetpay_email, points_current_cycle, points_all_time')
+      .single();
+  }
+  async function saveFaucetPayEmail(id, email) {
+    return supabase.from('profiles')
+      .update({ faucetpay_email: email })
+      .eq('id', id);
+  }
+  async function claimPoint() {
+    const { data, error } = await supabase.rpc('claim_point');
+    if (error) console.warn(error.message); // e.g. "Too soon"
+    return data;                            // new cycle total
+  }
+</script>
+
+  
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
