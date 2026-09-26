@@ -119,7 +119,7 @@
           </a>
           <button id="auth-toggle" type="button" aria-expanded="false" aria-controls="auth-panel"
                   class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
-            Login / Signup
+            Add wallet
           </button>
         </div>
       </nav>
@@ -128,37 +128,9 @@
       <div id="auth-panel" hidden
            class="absolute inset-x-0 top-full z-50 border-b border-zinc-800 bg-zinc-900 p-5 shadow-2xl shadow-black/50 sm:inset-x-auto sm:right-6 sm:mt-2 sm:w-96 sm:rounded-lg sm:border">
 
-        <!-- Logged-out: login / sign-up -->
-        <form id="auth-form" novalidate>
-          <h2 class="font-display text-lg font-semibold text-zinc-50">Log in or create an account</h2>
-          <div class="mt-4 space-y-3">
-            <div>
-              <label for="auth-email" class="mb-1 block text-xs font-medium text-zinc-400">Email</label>
-              <input id="auth-email" type="email" autocomplete="email" required class="field" placeholder="you@example.com" />
-            </div>
-            <div>
-              <label for="auth-password" class="mb-1 block text-xs font-medium text-zinc-400">Password</label>
-              <input id="auth-password" type="password" autocomplete="current-password" required minlength="8" class="field" placeholder="At least 8 characters" />
-            </div>
-          </div>
-          <div class="mt-4 grid grid-cols-2 gap-2">
-            <button id="login-btn" type="submit"
-                    class="rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
-              Log in
-            </button>
-            <button id="signup-btn" type="button"
-                    class="rounded-md border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
-              Sign up
-            </button>
-          </div>
-        </form>
-
-        <!-- Logged-in: account + payout wallet -->
-        <form id="account-form" hidden novalidate>
-          <p class="text-xs text-zinc-400">Signed in as</p>
-          <p id="account-email" class="truncate text-sm font-medium text-zinc-100"></p>
-
-          <fieldset class="mt-5">
+        <!-- Payout wallet (no email or password needed) -->
+        <form id="account-form" novalidate>
+          <fieldset>
             <legend class="text-sm font-semibold text-zinc-100">Payout wallet (USDT / USDC)</legend>
             <p class="mt-0.5 text-xs text-zinc-500">Required to earn points. You can change it anytime.</p>
 
@@ -185,10 +157,10 @@
             </p>
           </fieldset>
 
-          <button id="logout-btn" type="button"
-                  class="mt-5 w-full rounded-md border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
-            Log out
-          </button>
+          <p class="mt-4 border-t border-zinc-800 pt-3 text-xs leading-relaxed text-zinc-500">
+            No account needed. Your points are saved in this browser. Using another device or browser?
+            Enter the same wallet there and payouts are combined.
+          </p>
         </form>
 
         <p id="auth-message" class="mt-3 min-h-[1.25rem] text-sm" role="status" aria-live="polite"></p>
@@ -233,14 +205,14 @@
           <div class="min-w-0">
             <h1 id="dashboard-heading" class="font-display text-2xl font-semibold text-zinc-50">Your dashboard</h1>
             <p class="mt-1 truncate text-sm text-zinc-400">
-              <span id="user-email-label">Not signed in</span>
-              <span id="user-email" class="font-medium text-zinc-200"></span>
+              <span id="wallet-label">Payout wallet:</span>
+              <span id="wallet-short" class="font-mono font-medium text-zinc-200">not set</span>
             </p>
           </div>
           <span id="status-pill"
                 class="inline-flex items-center gap-2 rounded-full border border-zinc-600 bg-zinc-700/40 px-3 py-1 text-xs font-medium text-zinc-400">
             <span id="status-dot" class="h-1.5 w-1.5 rounded-full bg-zinc-500" aria-hidden="true"></span>
-            <span id="status-text">Signed out</span>
+            <span id="status-text">Connecting</span>
           </span>
         </div>
 
@@ -260,7 +232,7 @@
         <!-- Earning progress -->
         <div class="mt-8">
           <div class="flex items-baseline justify-between gap-3 text-sm">
-            <span id="earn-label" class="font-medium text-zinc-200">Log in to start earning</span>
+            <span id="earn-label" class="font-medium text-zinc-200">Starting your session…</span>
             <span id="earn-status" class="tabular-nums text-zinc-400"></span>
           </div>
           <div id="earn-bar" role="progressbar" aria-label="Progress toward next point"
@@ -359,18 +331,15 @@
         ethereum: { pattern: EVM, placeholder: '0x… (42 characters)',
                     note: 'Receives USDT or USDC on Ethereum. Network fees are high here.' },
       };
+      const NETWORK_NAMES = { tron: 'Tron', bsc: 'BNB Chain', polygon: 'Polygon', solana: 'Solana', ethereum: 'Ethereum' };
 
       // ================= DOM =================
       const $ = (id) => document.getElementById(id);
       const el = {
-        toggle: $('auth-toggle'), panel: $('auth-panel'),
-        authForm: $('auth-form'), email: $('auth-email'), password: $('auth-password'),
-        loginBtn: $('login-btn'), signupBtn: $('signup-btn'),
-        accountForm: $('account-form'), accountEmail: $('account-email'),
+        toggle: $('auth-toggle'), panel: $('auth-panel'), accountForm: $('account-form'),
         walletNetwork: $('wallet-network'), walletAddress: $('wallet-address'),
         walletNote: $('wallet-note'), walletSave: $('wallet-save'), walletCta: $('wallet-cta'),
-        logoutBtn: $('logout-btn'), message: $('auth-message'),
-        userEmailLabel: $('user-email-label'), userEmail: $('user-email'),
+        walletShort: $('wallet-short'), message: $('auth-message'),
         statusPill: $('status-pill'), statusDot: $('status-dot'), statusText: $('status-text'),
         cycle: $('cycle-points'), allTime: $('alltime-points'), today: $('earn-today'),
         bar: $('earn-bar'), fill: $('earn-fill'), label: $('earn-label'), status: $('earn-status'),
@@ -379,8 +348,9 @@
 
       // ================= STATE =================
       const state = {
-        user: null,          // Supabase auth user
+        user: null,          // anonymous Supabase user for this browser
         profile: null,       // row from public.profiles
+        setupError: null,    // shown if the session can't start
         pointsToday: 0,
         limitUntil: 0,       // ms timestamp when the daily cap resets (0 = not capped)
         activeMs: 0,         // visible time toward the next claim
@@ -388,7 +358,6 @@
         note: null,          // temporary status line (sync / retry messages)
         rateLimitStreak: 0,  // consecutive "Rate limit exceeded" replies
       };
-
       let lastStatusText = null; // last countdown text shown
 
       const hasWallet = () => !!state.profile?.wallet_address;
@@ -400,6 +369,10 @@
         return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
       }
 
+      function shortAddress(a) {
+        return a.length > 14 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
+      }
+
       // ================= UI HELPERS =================
       function setMessage(text, tone = 'info') {
         el.message.textContent = text;
@@ -407,17 +380,10 @@
           (tone === 'error' ? 'text-red-400' : tone === 'success' ? 'text-emerald-300' : 'text-zinc-400');
       }
 
-      function setBusy(busy, ...buttons) {
-        buttons.forEach((b) => { b.disabled = busy; });
-      }
-
       function openPanel(open) {
         el.panel.hidden = !open;
         el.toggle.setAttribute('aria-expanded', String(open));
-        if (open) {
-          const first = state.user ? el.walletAddress : el.email;
-          setTimeout(() => first.focus(), 0);
-        }
+        if (open) setTimeout(() => el.walletAddress.focus(), 0);
       }
 
       function updateWalletHints() {
@@ -430,7 +396,13 @@
         const p = state.profile;
         el.cycle.textContent = p ? p.points_current_cycle.toLocaleString() : '–';
         el.allTime.textContent = p ? p.points_all_time.toLocaleString() : '–';
-        // Fill the wallet form from the database unless the user is typing in it
+
+        el.walletShort.textContent = hasWallet()
+          ? `${shortAddress(p.wallet_address)} (${NETWORK_NAMES[p.wallet_network]})`
+          : 'not set';
+        el.toggle.textContent = hasWallet() ? 'Wallet' : 'Add wallet';
+
+        // Fill the wallet form from the database unless the visitor is typing in it
         if (p && !el.accountForm.contains(document.activeElement)) {
           if (p.wallet_network) el.walletNetwork.value = p.wallet_network;
           el.walletAddress.value = p.wallet_address || '';
@@ -438,13 +410,12 @@
         }
       }
 
-      // Everything that depends on "can this user earn right now, and if not, why?"
+      // Everything that depends on "can this visitor earn right now, and if not, why?"
       function renderStatus() {
-        const signedIn = !!state.user;
         let label, pill, tone;
 
-        if (!signedIn)            { label = 'Log in to start earning'; pill = 'Signed out'; tone = 'off'; }
-        else if (!state.profile)  { label = 'Loading your account…'; pill = 'Loading'; tone = 'off'; }
+        if (state.setupError)     { label = state.setupError; pill = 'Offline'; tone = 'warn'; }
+        else if (!state.profile)  { label = 'Starting your session…'; pill = 'Connecting'; tone = 'off'; }
         else if (!hasWallet())    { label = 'Add a payout wallet to start earning'; pill = 'Wallet needed'; tone = 'warn'; }
         else if (capped())        { label = 'Daily limit reached. Earning resumes at 00:00 UTC'; pill = 'Limit reached'; tone = 'warn'; }
         else if (state.claiming)  { label = 'Claiming your point…'; pill = 'Earning'; tone = 'on'; }
@@ -461,77 +432,36 @@
         el.statusDot.className = 'h-1.5 w-1.5 rounded-full ' +
           (tone === 'on' ? 'bg-emerald-400' : tone === 'warn' ? 'bg-amber-400' : 'bg-zinc-500');
 
-        el.walletCta.hidden = !(signedIn && state.profile && !hasWallet());
-        el.today.textContent = signedIn && state.profile
+        el.walletCta.hidden = !(state.profile && !hasWallet());
+        el.today.textContent = state.profile
           ? `Today: ${state.pointsToday.toLocaleString()} / ${DAILY_CAP.toLocaleString()} points · resets 00:00 UTC`
           : '';
         renderProgress();
       }
 
-      function renderAuthState() {
-        const signedIn = !!state.user;
-        el.authForm.hidden = signedIn;
-        el.accountForm.hidden = !signedIn;
-        el.toggle.textContent = signedIn ? 'Account' : 'Login / Signup';
-        el.userEmailLabel.textContent = signedIn ? 'Signed in as ' : 'Not signed in';
-        el.userEmail.textContent = signedIn ? state.user.email : '';
-        el.accountEmail.textContent = signedIn ? state.user.email : '';
-
-        if (!signedIn) {
-          Object.assign(state, { profile: null, pointsToday: 0, limitUntil: 0, activeMs: 0, note: null, rateLimitStreak: 0 });
-        }
-        renderProfile();
-        renderStatus();
-      }
-
       // ================= SUPABASE =================
       if (!window.supabase) {
-        setMessage('Could not load the Supabase library. Check your connection.', 'error');
-        setBusy(true, el.loginBtn, el.signupBtn);
-        renderAuthState();
+        state.setupError = 'Could not connect. Check your internet connection and reload.';
+        renderStatus();
         wirePanel();
         return;
       }
 
       const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      function readCredentials() {
-        const email = el.email.value.trim();
-        const password = el.password.value;
-        if (!email || !el.email.checkValidity()) { setMessage('Enter a valid email address.', 'error'); el.email.focus(); return null; }
-        if (password.length < 8) { setMessage('Password must be at least 8 characters.', 'error'); el.password.focus(); return null; }
-        return { email, password };
-      }
+      // Every visitor gets a silent anonymous session: no email, no password.
+      async function startSession() {
+        const { data } = await client.auth.getSession();
+        if (data.session) return; // returning visitor: onAuthStateChange takes it from here
 
-      async function handleSignUp() {
-        const creds = readCredentials();
-        if (!creds) return;
-        setBusy(true, el.loginBtn, el.signupBtn);
-        setMessage('Creating your account…');
-        const { data, error } = await client.auth.signUp({
-          ...creds,
-          options: { emailRedirectTo: window.location.origin + window.location.pathname },
-        });
-        setBusy(false, el.loginBtn, el.signupBtn);
-        if (error) return setMessage(error.message, 'error');
-        if (!data.session) setMessage('Check your inbox to confirm your email, then log in.', 'success');
-      }
-
-      async function handleLogin() {
-        const creds = readCredentials();
-        if (!creds) return;
-        setBusy(true, el.loginBtn, el.signupBtn);
-        setMessage('Logging in…');
-        const { error } = await client.auth.signInWithPassword(creds);
-        setBusy(false, el.loginBtn, el.signupBtn);
-        if (error) setMessage(error.message, 'error');
-      }
-
-      async function handleLogout() {
-        setBusy(true, el.logoutBtn);
-        await client.auth.signOut();
-        setBusy(false, el.logoutBtn);
-        setMessage('You have been logged out.');
+        const { error } = await client.auth.signInAnonymously();
+        if (error) {
+          state.setupError = /anonymous/i.test(error.message)
+            ? 'Setup needed: turn on anonymous sign-ins in Supabase.'
+            : 'Could not start your session. Reload to try again.';
+          console.error('Anonymous sign-in failed:', error.message);
+          renderStatus();
+        }
       }
 
       async function loadProfile() {
@@ -545,9 +475,12 @@
         ]);
 
         if (profileRes.error) {
-          setMessage('Could not load your points: ' + profileRes.error.message, 'error');
+          state.setupError = 'Could not load your points. Reload to try again.';
+          console.error(profileRes.error.message);
+          renderStatus();
           return;
         }
+        state.setupError = null;
         state.profile = profileRes.data;
         state.pointsToday = todayRes.error ? 0 : todayRes.data;
         state.limitUntil = state.pointsToday >= DAILY_CAP ? nextUtcMidnight() : 0;
@@ -562,6 +495,7 @@
       }
 
       async function saveWallet() {
+        if (!state.profile) return;
         const network = el.walletNetwork.value;
         const address = el.walletAddress.value.trim();
         el.walletAddress.value = address;
@@ -576,13 +510,15 @@
           el.walletAddress.focus();
           return;
         }
-        if (address === state.profile.wallet_address && network === state.profile.wallet_network) {
+        const same = network === state.profile.wallet_network &&
+          (EVM.test(address) ? address.toLowerCase() === state.profile.wallet_address : address === state.profile.wallet_address);
+        if (same) {
           setMessage('That is already your payout wallet.', 'info');
           return;
         }
 
         const firstWallet = !hasWallet();
-        setBusy(true, el.walletSave);
+        el.walletSave.disabled = true;
         setMessage('Saving wallet…');
         const { data, error } = await client
           .from('profiles')
@@ -590,16 +526,19 @@
           .eq('id', state.user.id)
           .select('wallet_network, wallet_address')
           .single();
-        setBusy(false, el.walletSave);
+        el.walletSave.disabled = false;
 
         if (error) {
           setMessage(error.code === '23514'
             ? "That address doesn't match the selected network. Check both."
-            : error.message, 'error');
+            : 'Could not save your wallet. Try again.', 'error');
+          console.error(error.message);
           return;
         }
 
         state.profile = { ...state.profile, ...data };
+        el.walletAddress.blur();
+        renderProfile();
         renderStatus();
         if (firstWallet) {
           setMessage("Wallet saved. You're earning now.", 'success');
@@ -616,23 +555,24 @@
         const { data, error } = await client.rpc('increment_user_impression').single();
 
         state.claiming = false;
-        if (!state.user) return; // logged out while the request was in flight
+        if (!state.user) return;
 
         if (error) {
           const msg = error.message;
           if (msg === 'Wallet required') {
             state.profile = { ...state.profile, wallet_network: null, wallet_address: null };
             state.activeMs = 0;
+            renderProfile();
             openPanel(true);
           } else if (msg === 'Daily limit reached') {
-            state.pointsToday = DAILY_CAP;
+            state.pointsToday = Math.max(state.pointsToday, DAILY_CAP);
             state.limitUntil = nextUtcMidnight();
             state.activeMs = 0;
           } else if (msg === 'Rate limit exceeded') {
-            // Usually a second tab or device is earning on this account
+            // Another tab, device or visitor on the same connection is earning
             state.rateLimitStreak += 1;
             state.note = state.rateLimitStreak >= 2
-              ? 'This account is earning in another tab or device'
+              ? 'Someone on your connection is already earning (another tab or device)'
               : 'Syncing with the server…';
             state.activeMs = INTERVAL_MS - 10000; // retry in ~10 seconds
           } else {
@@ -658,19 +598,19 @@
         setTimeout(() => el.cycle.classList.remove('scale-110'), 400);
       }
 
-      // Session changes: login, logout, token refresh, and restored sessions on page load.
+      // Session changes: new anonymous session, restored session, token refresh.
       client.auth.onAuthStateChange((event, session) => {
         // Defer so Supabase calls don't run inside the auth callback.
         setTimeout(async () => {
-          const wasSignedIn = !!state.user;
+          const previousId = state.user?.id;
           state.user = session?.user ?? null;
-          if (!state.user) { renderAuthState(); return; }
-          if (!wasSignedIn || event === 'USER_UPDATED') {
-            renderAuthState();
-            if (event === 'SIGNED_IN' && !el.panel.hidden) setMessage('');
-            await loadProfile();
-            if (hasWallet()) openPanel(false);
+          if (!state.user) {
+            Object.assign(state, { profile: null, pointsToday: 0, limitUntil: 0, activeMs: 0, note: null });
+            renderProfile();
+            renderStatus();
+            return;
           }
+          if (state.user.id !== previousId) await loadProfile();
         }, 0);
       });
 
@@ -694,7 +634,6 @@
         const delta = Math.min(now - lastFrame, 250); // cap so a sleeping tab can't dump in time
         lastFrame = now;
 
-        // Daily cap expired (new UTC day)
         if (state.limitUntil && Date.now() >= state.limitUntil) {
           state.limitUntil = 0;
           state.pointsToday = 0;
@@ -712,17 +651,16 @@
       document.addEventListener('visibilitychange', () => { lastFrame = performance.now(); renderProgress(); });
 
       // ================= EVENTS =================
-      el.authForm.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(); });
-      el.signupBtn.addEventListener('click', handleSignUp);
       el.accountForm.addEventListener('submit', (e) => { e.preventDefault(); saveWallet(); });
       el.walletNetwork.addEventListener('change', updateWalletHints);
       el.walletCta.addEventListener('click', (e) => { e.stopPropagation(); openPanel(true); });
-      el.logoutBtn.addEventListener('click', handleLogout);
       wirePanel();
 
       updateWalletHints();
-      renderAuthState();
+      renderProfile();
+      renderStatus();
       requestAnimationFrame(tick);
+      startSession();
 
       // ================= PANEL OPEN/CLOSE =================
       function wirePanel() {
