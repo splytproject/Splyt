@@ -79,6 +79,9 @@
       color: #a7f3d0; background: repeating-linear-gradient(135deg, #27272a 0 12px, #2b2b30 12px 24px);
     }
     .slot-fallback[hidden] { display: none; }
+    .slot-fallback.is-empty {
+      color: #71717a; font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase;
+    }
   </style>
   <script>
     // Ad scripts call this from onerror="__slotFail(this)" if they can't load.
@@ -150,22 +153,37 @@
           </div>
         </form>
 
-        <!-- Logged-in: account + FaucetPay email -->
+        <!-- Logged-in: account + payout wallet -->
         <form id="account-form" hidden novalidate>
           <p class="text-xs text-zinc-400">Signed in as</p>
           <p id="account-email" class="truncate text-sm font-medium text-zinc-100"></p>
 
-          <div class="mt-4">
-            <label for="faucetpay-email" class="mb-1 block text-xs font-medium text-zinc-400">FaucetPay email (for withdrawals)</label>
-            <div class="flex gap-2">
-              <input id="faucetpay-email" type="email" autocomplete="off" class="field" placeholder="faucetpay@example.com" />
-              <button id="faucetpay-save" type="submit"
-                      class="shrink-0 rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
-                Save
-              </button>
-            </div>
-            <p class="mt-1 text-xs text-zinc-500">Payouts go to this FaucetPay account. No ID required.</p>
-          </div>
+          <fieldset class="mt-5">
+            <legend class="text-sm font-semibold text-zinc-100">Payout wallet (USDT / USDC)</legend>
+            <p class="mt-0.5 text-xs text-zinc-500">Required to earn points. You can change it anytime.</p>
+
+            <label for="wallet-network" class="mb-1 mt-3 block text-xs font-medium text-zinc-400">Network</label>
+            <select id="wallet-network" class="field">
+              <option value="tron">Tron (TRC-20), USDT only</option>
+              <option value="bsc">BNB Smart Chain (BEP-20)</option>
+              <option value="polygon">Polygon</option>
+              <option value="solana">Solana</option>
+              <option value="ethereum">Ethereum (ERC-20)</option>
+            </select>
+
+            <label for="wallet-address" class="mb-1 mt-3 block text-xs font-medium text-zinc-400">Wallet address</label>
+            <input id="wallet-address" type="text" autocomplete="off" autocapitalize="off" autocorrect="off"
+                   spellcheck="false" class="field font-mono text-xs" aria-describedby="wallet-note" />
+            <p id="wallet-note" class="mt-1 text-xs text-zinc-500"></p>
+
+            <button id="wallet-save" type="submit"
+                    class="mt-3 w-full rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+              Save wallet
+            </button>
+            <p class="mt-2 text-xs text-amber-300/90">
+              Double-check the address and network. Crypto sent to a wrong address or network can't be recovered.
+            </p>
+          </fieldset>
 
           <button id="logout-btn" type="button"
                   class="mt-5 w-full rounded-md border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
@@ -250,6 +268,13 @@
                class="relative mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-900 ring-1 ring-inset ring-zinc-700">
             <div id="earn-fill" class="h-full w-0 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)]"></div>
           </div>
+          <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span id="earn-today" class="tabular-nums text-zinc-400"></span>
+            <button id="wallet-cta" type="button" hidden
+                    class="rounded-md border border-emerald-500/50 px-3 py-1.5 font-semibold text-emerald-300 hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+              Add payout wallet
+            </button>
+          </div>
           <p class="mt-2 text-xs text-zinc-500">
             Keep this tab open and visible. Progress pauses while the tab is in the background.
           </p>
@@ -313,12 +338,27 @@
     // Wrapped in an IIFE so our names can't collide with the library's global `supabase`.
     (() => {
       // ================= CONFIG =================
-      // Paste your values from Supabase → Settings → API Keys.
-      // Use the publishable key (sb_publishable_...) or the legacy anon key. NEVER the secret key.
+      // Publishable key only. NEVER put the secret key in this file.
       const SUPABASE_URL = 'https://tataonhqzyqgbnlcolxq.supabase.co';
       const SUPABASE_ANON_KEY = 'sb_publishable_mWxoOhTCMjj0jC8pnWEuqA_YnpauM8O';
 
-      const INTERVAL_MS = 30000; // 30s of visible time per claim (the server enforces this too)
+      const INTERVAL_MS = 30000; // must match min_gap in increment_user_impression
+      const DAILY_CAP = 720;     // must match cap in increment_user_impression
+
+      // Address formats (same rules the database enforces)
+      const EVM = /^0x[0-9a-fA-F]{40}$/;
+      const NETWORKS = {
+        tron:     { pattern: /^T[1-9A-HJ-NP-Za-km-z]{33}$/, placeholder: 'T… (34 characters)',
+                    note: 'Tron receives USDT only.' },
+        bsc:      { pattern: EVM, placeholder: '0x… (42 characters)',
+                    note: 'Receives USDT or USDC on BNB Smart Chain.' },
+        polygon:  { pattern: EVM, placeholder: '0x… (42 characters)',
+                    note: 'Receives USDT or USDC on Polygon.' },
+        solana:   { pattern: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/, placeholder: 'Solana address',
+                    note: 'Receives USDT or USDC on Solana.' },
+        ethereum: { pattern: EVM, placeholder: '0x… (42 characters)',
+                    note: 'Receives USDT or USDC on Ethereum. Network fees are high here.' },
+      };
 
       // ================= DOM =================
       const $ = (id) => document.getElementById(id);
@@ -327,22 +367,38 @@
         authForm: $('auth-form'), email: $('auth-email'), password: $('auth-password'),
         loginBtn: $('login-btn'), signupBtn: $('signup-btn'),
         accountForm: $('account-form'), accountEmail: $('account-email'),
-        faucetpay: $('faucetpay-email'), faucetpaySave: $('faucetpay-save'), logoutBtn: $('logout-btn'),
-        message: $('auth-message'),
+        walletNetwork: $('wallet-network'), walletAddress: $('wallet-address'),
+        walletNote: $('wallet-note'), walletSave: $('wallet-save'), walletCta: $('wallet-cta'),
+        logoutBtn: $('logout-btn'), message: $('auth-message'),
         userEmailLabel: $('user-email-label'), userEmail: $('user-email'),
         statusPill: $('status-pill'), statusDot: $('status-dot'), statusText: $('status-text'),
-        cycle: $('cycle-points'), allTime: $('alltime-points'),
+        cycle: $('cycle-points'), allTime: $('alltime-points'), today: $('earn-today'),
         bar: $('earn-bar'), fill: $('earn-fill'), label: $('earn-label'), status: $('earn-status'),
         announce: $('sr-announce'),
       };
 
       // ================= STATE =================
       const state = {
-        user: null,      // Supabase auth user
-        profile: null,   // row from public.profiles
-        activeMs: 0,     // visible time toward the next claim
-        claiming: false, // a claim request is in flight
+        user: null,          // Supabase auth user
+        profile: null,       // row from public.profiles
+        pointsToday: 0,
+        limitUntil: 0,       // ms timestamp when the daily cap resets (0 = not capped)
+        activeMs: 0,         // visible time toward the next claim
+        claiming: false,
+        note: null,          // temporary status line (sync / retry messages)
+        rateLimitStreak: 0,  // consecutive "Rate limit exceeded" replies
       };
+
+      let lastStatusText = null; // last countdown text shown
+
+      const hasWallet = () => !!state.profile?.wallet_address;
+      const capped = () => state.limitUntil > Date.now();
+      const canEarn = () => !!(state.user && state.profile && hasWallet() && !capped());
+
+      function nextUtcMidnight() {
+        const d = new Date();
+        return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+      }
 
       // ================= UI HELPERS =================
       function setMessage(text, tone = 'info') {
@@ -359,16 +415,57 @@
         el.panel.hidden = !open;
         el.toggle.setAttribute('aria-expanded', String(open));
         if (open) {
-          const first = state.user ? el.faucetpay : el.email;
+          const first = state.user ? el.walletAddress : el.email;
           setTimeout(() => first.focus(), 0);
         }
+      }
+
+      function updateWalletHints() {
+        const net = NETWORKS[el.walletNetwork.value];
+        el.walletAddress.placeholder = net.placeholder;
+        el.walletNote.textContent = net.note;
       }
 
       function renderProfile() {
         const p = state.profile;
         el.cycle.textContent = p ? p.points_current_cycle.toLocaleString() : '–';
         el.allTime.textContent = p ? p.points_all_time.toLocaleString() : '–';
-        if (p && document.activeElement !== el.faucetpay) el.faucetpay.value = p.faucetpay_email || '';
+        // Fill the wallet form from the database unless the user is typing in it
+        if (p && !el.accountForm.contains(document.activeElement)) {
+          if (p.wallet_network) el.walletNetwork.value = p.wallet_network;
+          el.walletAddress.value = p.wallet_address || '';
+          updateWalletHints();
+        }
+      }
+
+      // Everything that depends on "can this user earn right now, and if not, why?"
+      function renderStatus() {
+        const signedIn = !!state.user;
+        let label, pill, tone;
+
+        if (!signedIn)            { label = 'Log in to start earning'; pill = 'Signed out'; tone = 'off'; }
+        else if (!state.profile)  { label = 'Loading your account…'; pill = 'Loading'; tone = 'off'; }
+        else if (!hasWallet())    { label = 'Add a payout wallet to start earning'; pill = 'Wallet needed'; tone = 'warn'; }
+        else if (capped())        { label = 'Daily limit reached. Earning resumes at 00:00 UTC'; pill = 'Limit reached'; tone = 'warn'; }
+        else if (state.claiming)  { label = 'Claiming your point…'; pill = 'Earning'; tone = 'on'; }
+        else                      { label = state.note || 'Earning your next point'; pill = 'Earning'; tone = 'on'; }
+
+        el.label.textContent = label;
+        el.statusText.textContent = pill;
+        const pillTone = {
+          on:   'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
+          warn: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+          off:  'border-zinc-600 bg-zinc-700/40 text-zinc-400',
+        }[tone];
+        el.statusPill.className = 'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ' + pillTone;
+        el.statusDot.className = 'h-1.5 w-1.5 rounded-full ' +
+          (tone === 'on' ? 'bg-emerald-400' : tone === 'warn' ? 'bg-amber-400' : 'bg-zinc-500');
+
+        el.walletCta.hidden = !(signedIn && state.profile && !hasWallet());
+        el.today.textContent = signedIn && state.profile
+          ? `Today: ${state.pointsToday.toLocaleString()} / ${DAILY_CAP.toLocaleString()} points · resets 00:00 UTC`
+          : '';
+        renderProgress();
       }
 
       function renderAuthState() {
@@ -376,34 +473,20 @@
         el.authForm.hidden = signedIn;
         el.accountForm.hidden = !signedIn;
         el.toggle.textContent = signedIn ? 'Account' : 'Login / Signup';
-
         el.userEmailLabel.textContent = signedIn ? 'Signed in as ' : 'Not signed in';
         el.userEmail.textContent = signedIn ? state.user.email : '';
         el.accountEmail.textContent = signedIn ? state.user.email : '';
 
-        el.statusText.textContent = signedIn ? 'Earning' : 'Signed out';
-        el.statusPill.className = 'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium border ' +
-          (signedIn ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-                    : 'border-zinc-600 bg-zinc-700/40 text-zinc-400');
-        el.statusDot.className = 'h-1.5 w-1.5 rounded-full ' + (signedIn ? 'bg-emerald-400' : 'bg-zinc-500');
-
         if (!signedIn) {
-          state.profile = null;
-          state.activeMs = 0;
-          el.label.textContent = 'Log in to start earning';
-        } else {
-          el.label.textContent = 'Earning your next point';
+          Object.assign(state, { profile: null, pointsToday: 0, limitUntil: 0, activeMs: 0, note: null, rateLimitStreak: 0 });
         }
         renderProfile();
-        renderProgress();
+        renderStatus();
       }
 
       // ================= SUPABASE =================
-      const configured = !SUPABASE_URL.includes('YOUR-PROJECT') && !SUPABASE_ANON_KEY.startsWith('YOUR_');
-      if (!window.supabase || !configured) {
-        setMessage(!window.supabase
-          ? 'Could not load the Supabase library. Check your connection.'
-          : 'Setup needed: add your SUPABASE_URL and key at the top of the script.', 'error');
+      if (!window.supabase) {
+        setMessage('Could not load the Supabase library. Check your connection.', 'error');
         setBusy(true, el.loginBtn, el.signupBtn);
         renderAuthState();
         wirePanel();
@@ -431,10 +514,7 @@
         });
         setBusy(false, el.loginBtn, el.signupBtn);
         if (error) return setMessage(error.message, 'error');
-        if (!data.session) {
-          setMessage('Check your inbox to confirm your email, then log in.', 'success');
-        }
-        // If email confirmation is off, onAuthStateChange signs the user in.
+        if (!data.session) setMessage('Check your inbox to confirm your email, then log in.', 'success');
       }
 
       async function handleLogin() {
@@ -445,7 +525,6 @@
         const { error } = await client.auth.signInWithPassword(creds);
         setBusy(false, el.loginBtn, el.signupBtn);
         if (error) setMessage(error.message, 'error');
-        // Success is handled in onAuthStateChange.
       }
 
       async function handleLogout() {
@@ -457,69 +536,123 @@
 
       async function loadProfile() {
         if (!state.user) return;
-        const { data, error } = await client
-          .from('profiles')
-          .select('faucetpay_email, points_current_cycle, points_all_time')
-          .eq('id', state.user.id)
-          .single();
-        if (error) {
-          setMessage('Could not load your points: ' + error.message, 'error');
+        const [profileRes, todayRes] = await Promise.all([
+          client.from('profiles')
+            .select('wallet_network, wallet_address, points_current_cycle, points_all_time')
+            .eq('id', state.user.id)
+            .single(),
+          client.rpc('my_points_today'),
+        ]);
+
+        if (profileRes.error) {
+          setMessage('Could not load your points: ' + profileRes.error.message, 'error');
           return;
         }
-        state.profile = data;
+        state.profile = profileRes.data;
+        state.pointsToday = todayRes.error ? 0 : todayRes.data;
+        state.limitUntil = state.pointsToday >= DAILY_CAP ? nextUtcMidnight() : 0;
+
         renderProfile();
-        if (!data.faucetpay_email) {
-          setMessage('Add your FaucetPay email so we can pay you.', 'info');
+        renderStatus();
+
+        if (!hasWallet()) {
+          setMessage('Add a USDT/USDC wallet to start earning.', 'info');
           openPanel(true);
         }
       }
 
-      async function saveFaucetPayEmail() {
-        const value = el.faucetpay.value.trim();
-        if (value && !el.faucetpay.checkValidity()) {
-          setMessage('That doesn’t look like a valid email.', 'error');
+      async function saveWallet() {
+        const network = el.walletNetwork.value;
+        const address = el.walletAddress.value.trim();
+        el.walletAddress.value = address;
+
+        if (!address) {
+          setMessage('Enter your wallet address.', 'error');
+          el.walletAddress.focus();
           return;
         }
-        setBusy(true, el.faucetpaySave);
+        if (!NETWORKS[network].pattern.test(address)) {
+          setMessage("That address doesn't match the selected network. Check both.", 'error');
+          el.walletAddress.focus();
+          return;
+        }
+        if (address === state.profile.wallet_address && network === state.profile.wallet_network) {
+          setMessage('That is already your payout wallet.', 'info');
+          return;
+        }
+
+        const firstWallet = !hasWallet();
+        setBusy(true, el.walletSave);
+        setMessage('Saving wallet…');
         const { data, error } = await client
           .from('profiles')
-          .update({ faucetpay_email: value || null })
+          .update({ wallet_network: network, wallet_address: address })
           .eq('id', state.user.id)
-          .select('faucetpay_email')
+          .select('wallet_network, wallet_address')
           .single();
-        setBusy(false, el.faucetpaySave);
+        setBusy(false, el.walletSave);
+
         if (error) {
-          setMessage(error.code === '23514' ? 'That doesn’t look like a valid email.' : error.message, 'error');
+          setMessage(error.code === '23514'
+            ? "That address doesn't match the selected network. Check both."
+            : error.message, 'error');
           return;
         }
-        state.profile = { ...state.profile, faucetpay_email: data.faucetpay_email };
-        setMessage(value ? 'FaucetPay email saved.' : 'FaucetPay email removed.', 'success');
+
+        state.profile = { ...state.profile, ...data };
+        renderStatus();
+        if (firstWallet) {
+          setMessage("Wallet saved. You're earning now.", 'success');
+          setTimeout(() => { if (hasWallet()) openPanel(false); }, 1500);
+        } else {
+          setMessage('Wallet updated. Future payouts go to the new address.', 'success');
+        }
       }
 
       async function claimPoint() {
         state.claiming = true;
-        el.label.textContent = 'Claiming your point…';
+        renderStatus();
 
-        const { data, error } = await client
-          .rpc('increment_user_impression')
-          .single(); // one row: { points_current_cycle, points_all_time }
+        const { data, error } = await client.rpc('increment_user_impression').single();
 
         state.claiming = false;
         if (!state.user) return; // logged out while the request was in flight
 
         if (error) {
-          el.label.textContent = error.message === 'Rate limit exceeded'
-            ? 'Syncing with the server…'
-            : 'Claim failed. Retrying shortly';
-          state.activeMs = INTERVAL_MS - 5000; // try again in ~5 seconds
+          const msg = error.message;
+          if (msg === 'Wallet required') {
+            state.profile = { ...state.profile, wallet_network: null, wallet_address: null };
+            state.activeMs = 0;
+            openPanel(true);
+          } else if (msg === 'Daily limit reached') {
+            state.pointsToday = DAILY_CAP;
+            state.limitUntil = nextUtcMidnight();
+            state.activeMs = 0;
+          } else if (msg === 'Rate limit exceeded') {
+            // Usually a second tab or device is earning on this account
+            state.rateLimitStreak += 1;
+            state.note = state.rateLimitStreak >= 2
+              ? 'This account is earning in another tab or device'
+              : 'Syncing with the server…';
+            state.activeMs = INTERVAL_MS - 10000; // retry in ~10 seconds
+          } else {
+            state.note = 'Claim failed. Retrying shortly';
+            state.activeMs = INTERVAL_MS - 5000;
+          }
+          renderStatus();
           return;
         }
 
+        state.rateLimitStreak = 0;
+        state.note = null;
+        state.activeMs = 0;
         state.profile.points_current_cycle = data.points_current_cycle;
         state.profile.points_all_time = data.points_all_time;
-        state.activeMs = 0;
-        el.label.textContent = 'Earning your next point';
+        state.pointsToday = data.points_today;
+        if (state.pointsToday >= DAILY_CAP) state.limitUntil = nextUtcMidnight();
+
         renderProfile();
+        renderStatus();
         el.announce.textContent = `You earned a point. You have ${data.points_current_cycle} this cycle.`;
         el.cycle.classList.add('scale-110');
         setTimeout(() => el.cycle.classList.remove('scale-110'), 400);
@@ -534,27 +667,26 @@
           if (!state.user) { renderAuthState(); return; }
           if (!wasSignedIn || event === 'USER_UPDATED') {
             renderAuthState();
-            if (event === 'SIGNED_IN' && el.panel.hidden === false) setMessage('');
+            if (event === 'SIGNED_IN' && !el.panel.hidden) setMessage('');
             await loadProfile();
-            if (state.profile?.faucetpay_email) openPanel(false);
+            if (hasWallet()) openPanel(false);
           }
         }, 0);
       });
 
       // ================= PROGRESS LOOP =================
-      let lastSecondsShown = null;
       function renderProgress() {
-        const pct = state.user ? Math.min(state.activeMs / INTERVAL_MS, 1) * 100 : 0;
+        const pct = canEarn() ? Math.min(state.activeMs / INTERVAL_MS, 1) * 100 : 0;
         el.fill.style.width = pct + '%';
         el.bar.setAttribute('aria-valuenow', Math.round(pct));
 
         let text = '';
-        if (state.user) {
+        if (canEarn()) {
           if (document.visibilityState !== 'visible') text = 'Paused';
           else if (state.claiming) text = '…';
           else text = `${Math.max(Math.ceil((INTERVAL_MS - state.activeMs) / 1000), 0)}s left`;
         }
-        if (text !== lastSecondsShown) { el.status.textContent = text; lastSecondsShown = text; }
+        if (text !== lastStatusText) { el.status.textContent = text; lastStatusText = text; }
       }
 
       let lastFrame = performance.now();
@@ -562,7 +694,14 @@
         const delta = Math.min(now - lastFrame, 250); // cap so a sleeping tab can't dump in time
         lastFrame = now;
 
-        if (state.user && state.profile && document.visibilityState === 'visible' && !state.claiming) {
+        // Daily cap expired (new UTC day)
+        if (state.limitUntil && Date.now() >= state.limitUntil) {
+          state.limitUntil = 0;
+          state.pointsToday = 0;
+          renderStatus();
+        }
+
+        if (canEarn() && document.visibilityState === 'visible' && !state.claiming) {
           state.activeMs = Math.min(state.activeMs + delta, INTERVAL_MS);
           if (state.activeMs >= INTERVAL_MS) claimPoint();
         }
@@ -575,10 +714,13 @@
       // ================= EVENTS =================
       el.authForm.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(); });
       el.signupBtn.addEventListener('click', handleSignUp);
-      el.accountForm.addEventListener('submit', (e) => { e.preventDefault(); saveFaucetPayEmail(); });
+      el.accountForm.addEventListener('submit', (e) => { e.preventDefault(); saveWallet(); });
+      el.walletNetwork.addEventListener('change', updateWalletHints);
+      el.walletCta.addEventListener('click', (e) => { e.stopPropagation(); openPanel(true); });
       el.logoutBtn.addEventListener('click', handleLogout);
       wirePanel();
 
+      updateWalletHints();
       renderAuthState();
       requestAnimationFrame(tick);
 
@@ -619,8 +761,13 @@
       slots.forEach((slot) => {
         const frame = slot.querySelector('iframe[data-aa]');
         if (frame && !/^\d+$/.test(frame.dataset.aa)) {
+          // No real unit yet: show a quiet "Ad space" box, not the AdBlock message
           frame.remove();
-          slot.setAttribute('data-slot-state', 'failed');
+          slot.setAttribute('data-slot-state', 'empty');
+          const fb = slot.querySelector('[data-slot-fallback]');
+          fb.textContent = 'Ad space';
+          fb.classList.add('is-empty');
+          fb.hidden = false;
         }
       });
 
@@ -637,6 +784,7 @@
         bait.remove();
 
         slots.forEach((slot) => {
+          if (slot.dataset.slotState === 'empty') return;
           const creative = slot.querySelector('.slot-creative');
           // Anything the ad code actually rendered (iframe, div, img...), ignoring scripts
           const rendered = creative && [...creative.children].some((c) =>
