@@ -456,10 +456,14 @@
 
         const { error } = await client.auth.signInAnonymously();
         if (error) {
-          state.setupError = /anonymous/i.test(error.message)
-            ? 'Setup needed: turn on anonymous sign-ins in Supabase.'
-            : 'Could not start your session. Reload to try again.';
-          console.error('Anonymous sign-in failed:', error.message);
+          const m = error.message || '';
+          state.setupError = /anonymous/i.test(m)
+            ? 'Setup needed: anonymous sign-ins are turned off in Supabase.'
+            : /captcha/i.test(m)
+              ? 'Setup needed: CAPTCHA is on in Supabase, but this page does not support it yet.'
+              : 'Could not start your session. Reload to try again.';
+          console.error('Anonymous sign-in failed:', m);
+          setMessage(state.setupError, 'error');
           renderStatus();
         }
       }
@@ -495,7 +499,12 @@
       }
 
       async function saveWallet() {
-        if (!state.profile) return;
+        if (!state.profile) {
+          // No session yet: say why instead of silently doing nothing
+          setMessage(state.setupError || 'Still connecting to the server. Try again in a few seconds.', 'error');
+          if (!state.user && !state.setupError) startSession();
+          return;
+        }
         const network = el.walletNetwork.value;
         const address = el.walletAddress.value.trim();
         el.walletAddress.value = address;
