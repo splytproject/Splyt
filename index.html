@@ -161,6 +161,10 @@
             No account needed. Your points are saved in this browser. Using another device or browser?
             Enter the same wallet there and payouts are combined.
           </p>
+          <p class="mt-2 text-xs leading-relaxed text-zinc-500">
+            We log your IP address with each point to prevent abuse, and delete it after 90 days.
+            <a href="privacy.html" class="text-emerald-400 underline underline-offset-2 hover:text-emerald-300">Privacy notice</a>
+          </p>
         </form>
 
         <p id="auth-message" class="mt-3 min-h-[1.25rem] text-sm" role="status" aria-live="polite"></p>
@@ -302,7 +306,7 @@
 
   <footer class="border-t border-zinc-800">
     <div class="mx-auto max-w-6xl px-4 py-6 text-xs text-zinc-500 sm:px-6">
-      © 2026 Splyt. Points have no cash value outside payout cycles.
+      © 2026 Splyt. Points have no cash value outside payout cycles. · <a href="privacy.html" class="text-zinc-400 underline underline-offset-2 hover:text-emerald-300">Privacy notice</a>
     </div>
   </footer>
 
@@ -311,7 +315,12 @@
     (() => {
       // ================= CONFIG =================
       // Publishable key only. NEVER put the secret key in this file.
-      const SUPABASE_URL = 'https://tataonhqzyqgbnlcolxq.supabase.co';
+      const SUPABASE_PROJECT_URL = 'https://tataonhqzyqgbnlcolxq.supabase.co';
+      // Cloudflare Worker proxy (see worker.js). Needed because some Indian ISPs
+      // block *.supabase.co. Paste your Worker URL here, e.g.
+      // 'https://splyt-api.yourname.workers.dev'. Leave empty to connect directly.
+      const API_PROXY_URL = '';
+      const SUPABASE_URL = API_PROXY_URL || SUPABASE_PROJECT_URL;
       const SUPABASE_ANON_KEY = 'sb_publishable_mWxoOhTCMjj0jC8pnWEuqA_YnpauM8O';
 
       const INTERVAL_MS = 30000; // must match min_gap in increment_user_impression
@@ -447,7 +456,16 @@
         return;
       }
 
-      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Fixed storage key so sessions survive switching between direct and proxy URLs
+      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { storageKey: 'splyt-auth' },
+      });
+
+      const NETWORK_BLOCKED_MSG =
+        "Can't reach the Splyt server. Your network may be blocking it. Try another network or a VPN.";
+      const isNetworkError = (err) =>
+        !!err && (err.name === 'AuthRetryableFetchError' || err.status === 0 ||
+                  /failed to fetch|load failed|networkerror|network request failed/i.test(err.message || ''));
 
       // Every visitor gets a silent anonymous session: no email, no password.
       async function startSession() {
@@ -457,7 +475,9 @@
         const { error } = await client.auth.signInAnonymously();
         if (error) {
           const m = error.message || '';
-          state.setupError = /anonymous/i.test(m)
+          state.setupError = isNetworkError(error)
+            ? NETWORK_BLOCKED_MSG
+            : /anonymous/i.test(m)
             ? 'Setup needed: anonymous sign-ins are turned off in Supabase.'
             : /captcha/i.test(m)
               ? 'Setup needed: CAPTCHA is on in Supabase, but this page does not support it yet.'
@@ -479,7 +499,9 @@
         ]);
 
         if (profileRes.error) {
-          state.setupError = 'Could not load your points. Reload to try again.';
+          state.setupError = isNetworkError(profileRes.error)
+            ? NETWORK_BLOCKED_MSG
+            : 'Could not load your points. Reload to try again.';
           console.error(profileRes.error.message);
           renderStatus();
           return;
