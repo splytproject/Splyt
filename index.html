@@ -477,6 +477,8 @@
           const m = error.message || '';
           state.setupError = isNetworkError(error)
             ? NETWORK_BLOCKED_MSG
+            : error.code === 'signup_disabled' || /signups not allowed/i.test(m)
+            ? 'Setup needed: new sign-ups are turned off in Supabase.'
             : /anonymous/i.test(m)
             ? 'Setup needed: anonymous sign-ins are turned off in Supabase.'
             : /captcha/i.test(m)
