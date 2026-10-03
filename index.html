@@ -234,30 +234,70 @@
           </div>
         </dl>
 
-        <!-- Earning progress -->
-        <div class="mt-8">
-          <div class="flex items-baseline justify-between gap-3 text-sm">
-            <span id="earn-label" class="font-medium text-zinc-200">Starting your session…</span>
-            <span id="earn-status" class="tabular-nums text-zinc-400"></span>
-          </div>
-          <div id="earn-bar" role="progressbar" aria-label="Progress toward next point"
-               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
-               class="relative mt-3 h-2.5 overflow-hidden rounded-full bg-zinc-900 ring-1 ring-inset ring-zinc-700">
-            <div id="earn-fill" class="h-full w-0 rounded-full bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.6)]"></div>
-          </div>
-          <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span id="earn-today" class="tabular-nums text-zinc-400"></span>
+        <!-- Daily check-in -->
+        <div class="mt-8 rounded-md border border-zinc-700 bg-zinc-900/60 p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="min-w-0">
+              <p class="font-display text-lg font-semibold text-zinc-50">Daily check-in</p>
+              <p id="checkin-sub" class="mt-0.5 text-sm text-zinc-400" aria-live="polite">Starting your session…</p>
+            </div>
+            <button id="checkin-btn" type="button" disabled
+                    class="shrink-0 rounded-md bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900">
+              Check in
+            </button>
             <button id="wallet-cta" type="button" hidden
-                    class="rounded-md border border-emerald-500/50 px-3 py-1.5 font-semibold text-emerald-300 hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                    class="shrink-0 rounded-md border border-emerald-500/50 px-4 py-2.5 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
               Add payout wallet
             </button>
           </div>
-          <p class="mt-2 text-xs text-zinc-500">
-            Keep this tab open and visible. Progress pauses while the tab is in the background.
-          </p>
+
+          <div class="mt-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 text-xs">
+              <span class="text-zinc-400">Streak: <span id="streak-count" class="font-semibold text-zinc-100">0 days</span></span>
+              <span id="streak-next" class="text-zinc-500"></span>
+            </div>
+            <ol id="streak-pips" class="mt-2 grid grid-cols-11 gap-1" aria-hidden="true"></ol>
+            <div class="mt-1 flex justify-between text-[11px] text-zinc-500" aria-hidden="true">
+              <span>Day 1 · 10 pts</span><span>Day 11+ · 20 pts</span>
+            </div>
+          </div>
         </div>
 
         <p id="sr-announce" class="sr-only" aria-live="polite"></p>
+      </section>
+
+      <!-- Referral Card -->
+      <section aria-labelledby="ref-heading" class="rounded-lg border border-zinc-700 bg-zinc-800/50 p-6 sm:p-8">
+        <h2 id="ref-heading" class="font-display text-xl font-semibold text-zinc-50">Invite friends</h2>
+        <p class="mt-2 max-w-prose text-sm leading-relaxed text-zinc-300">
+          Get <strong class="font-semibold text-emerald-300">+25 points</strong> when a friend checks in for the first time,
+          and <strong class="font-semibold text-emerald-300">+2</strong> every day they check in after that.
+        </p>
+        <label for="ref-link" class="mb-1 mt-4 block text-xs font-medium text-zinc-400">Your invite link</label>
+        <div class="flex gap-2">
+          <input id="ref-link" type="text" readonly class="field font-mono text-xs" value="Save a wallet to get your link" />
+          <button id="ref-copy" type="button" disabled
+                  class="shrink-0 rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+            Copy
+          </button>
+          <button id="ref-share" type="button" hidden
+                  class="shrink-0 rounded-md border border-emerald-500/50 px-4 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+            Share
+          </button>
+        </div>
+        <dl class="mt-5 grid grid-cols-2 gap-3">
+          <div class="border-l-2 border-zinc-600 bg-zinc-900/60 px-4 py-3">
+            <dt class="text-xs text-zinc-400">Friends joined</dt>
+            <dd id="ref-friends" class="mt-1 font-display text-2xl font-bold tabular-nums text-zinc-100">–</dd>
+          </div>
+          <div class="border-l-2 border-zinc-600 bg-zinc-900/60 px-4 py-3">
+            <dt class="text-xs text-zinc-400">Referral points</dt>
+            <dd id="ref-points" class="mt-1 font-display text-2xl font-bold tabular-nums text-zinc-100">–</dd>
+          </div>
+        </dl>
+        <p class="mt-3 text-xs leading-relaxed text-zinc-500">
+          Invites count when your friend is on a different network from you and uses their own wallet.
+        </p>
       </section>
 
       <!-- Information Card -->
@@ -277,7 +317,12 @@
             <span>50% runs the platform</span>
           </div>
         </div>
-        <p class="mt-6 max-w-prose text-sm leading-relaxed text-zinc-400">
+        <h3 class="mt-6 text-sm font-semibold text-zinc-100">How you earn points</h3>
+        <ul class="mt-2 max-w-prose list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-zinc-400">
+          <li>Check in once a day: 10 points, plus 1 more for every day in a row, up to 20.</li>
+          <li>Invite friends: 25 points when they first check in, then 2 each day they come back.</li>
+        </ul>
+        <p class="mt-4 max-w-prose text-sm leading-relaxed text-zinc-400">
           Your payout equals your share of the cycle's total points. If you hold 2% of all points
           this cycle, you receive 2% of the user pool.
         </p>
@@ -319,14 +364,14 @@
       // Publishable key only. NEVER put the secret key in this file.
       const SUPABASE_PROJECT_URL = 'https://tataonhqzyqgbnlcolxq.supabase.co';
       // Cloudflare Worker proxy (see worker.js). Needed because some Indian ISPs
-      // block *.supabase.co. Paste your Worker URL here, e.g.
-      // 'https://splyt-api.yourname.workers.dev'. Leave empty to connect directly.
+      // block *.supabase.co. Leave empty to connect directly.
       const API_PROXY_URL = 'https://splyt-api.splytproject.workers.dev';
       const SUPABASE_URL = API_PROXY_URL || SUPABASE_PROJECT_URL;
       const SUPABASE_ANON_KEY = 'sb_publishable_mWxoOhTCMjj0jC8pnWEuqA_YnpauM8O';
 
-      const INTERVAL_MS = 30000; // must match min_gap in increment_user_impression
-      const DAILY_CAP = 720;     // must match cap in increment_user_impression
+      // Check-in unlocks a few seconds after the page opens, so the ads have time to load
+      const CHECKIN_UNLOCK_MS = 8000;
+      const REF_STORAGE_KEY = 'splyt-ref';
 
       // Address formats (same rules the database enforces)
       const EVM = /^0x[0-9a-fA-F]{40}$/;
@@ -352,37 +397,85 @@
         walletNote: $('wallet-note'), walletSave: $('wallet-save'), walletCta: $('wallet-cta'),
         walletShort: $('wallet-short'), message: $('auth-message'),
         statusPill: $('status-pill'), statusDot: $('status-dot'), statusText: $('status-text'),
-        cycle: $('cycle-points'), allTime: $('alltime-points'), today: $('earn-today'),
-        bar: $('earn-bar'), fill: $('earn-fill'), label: $('earn-label'), status: $('earn-status'),
+        cycle: $('cycle-points'), allTime: $('alltime-points'),
+        checkinBtn: $('checkin-btn'), checkinSub: $('checkin-sub'),
+        streakCount: $('streak-count'), streakNext: $('streak-next'), streakPips: $('streak-pips'),
+        refLink: $('ref-link'), refCopy: $('ref-copy'), refShare: $('ref-share'),
+        refFriends: $('ref-friends'), refPoints: $('ref-points'),
         announce: $('sr-announce'),
       };
 
       // ================= STATE =================
+      const pageOpenedAt = Date.now();
       const state = {
-        user: null,          // anonymous Supabase user for this browser
+        user: null,
         profile: null,       // row from public.profiles
-        setupError: null,    // shown if the session can't start
-        pointsToday: 0,
-        limitUntil: 0,       // ms timestamp when the daily cap resets (0 = not capped)
-        activeMs: 0,         // visible time toward the next claim
-        claiming: false,
-        note: null,          // temporary status line (sync / retry messages)
-        rateLimitStreak: 0,  // consecutive "Rate limit exceeded" replies
+        refStats: null,      // { friends_joined, referral_points }
+        setupError: null,
+        checkingIn: false,
+        blockedToday: null,  // 'network' | 'wallet' when the server refuses for today
+        blockedOn: null,     // UTC date the block applies to
+        lastResult: null,    // text shown right after a successful check-in
+        checkinError: null,  // last check-in failure, shown until the next try
       };
-      let lastStatusText = null; // last countdown text shown
 
-      const hasWallet = () => !!state.profile?.wallet_address;
-      const capped = () => state.limitUntil > Date.now();
-      const canEarn = () => !!(state.user && state.profile && hasWallet() && !capped());
-
-      function nextUtcMidnight() {
+      // ================= DATES (UTC) =================
+      const utcDate = (offsetDays = 0) => {
         const d = new Date();
-        return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + 1);
+        d.setUTCDate(d.getUTCDate() + offsetDays);
+        return d.toISOString().slice(0, 10);
+      };
+      function untilUtcMidnight() {
+        const now = new Date();
+        const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+        const mins = Math.max(0, Math.ceil((next - now.getTime()) / 60000));
+        const h = Math.floor(mins / 60), m = mins % 60;
+        return h > 0 ? `${h}h ${m}m` : `${m}m`;
       }
+
+      // ================= DERIVED =================
+      const hasWallet = () => !!state.profile?.wallet_address;
+      const checkedInToday = () => state.profile?.last_checkin_date === utcDate(0);
+      // Streak still alive if the last check-in was today or yesterday
+      function currentStreak() {
+        const p = state.profile;
+        if (!p || !p.last_checkin_date) return 0;
+        return (p.last_checkin_date === utcDate(0) || p.last_checkin_date === utcDate(-1)) ? p.streak_count : 0;
+      }
+      // Points the next check-in will give
+      function nextReward() {
+        const p = state.profile;
+        const continues = p && (p.last_checkin_date === utcDate(0) || p.last_checkin_date === utcDate(-1));
+        const nextStreak = continues ? p.streak_count + 1 : 1;
+        return 10 + Math.min(nextStreak - 1, 10);
+      }
+      const blockedNow = () => state.blockedToday && state.blockedOn === utcDate(0);
 
       function shortAddress(a) {
         return a.length > 14 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a;
       }
+
+      // ================= REFERRAL CAPTURE =================
+      // ?ref=abcd1234 is remembered until this visitor's first check-in
+      (function captureRef() {
+        try {
+          const params = new URLSearchParams(location.search);
+          const ref = (params.get('ref') || '').toLowerCase();
+          if (/^[0-9a-f]{8}$/.test(ref)) localStorage.setItem(REF_STORAGE_KEY, ref);
+          if (params.has('ref')) {
+            params.delete('ref');
+            const qs = params.toString();
+            history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+          }
+        } catch { /* storage unavailable: referral simply isn't applied */ }
+      })();
+      function storedRef() {
+        try { return localStorage.getItem(REF_STORAGE_KEY); } catch { return null; }
+      }
+      function clearStoredRef() {
+        try { localStorage.removeItem(REF_STORAGE_KEY); } catch { /* ignore */ }
+      }
+      const inviteLink = () => location.origin + location.pathname + '?ref=' + state.profile.referral_code;
 
       // ================= UI HELPERS =================
       function setMessage(text, tone = 'info') {
@@ -407,32 +500,75 @@
         const p = state.profile;
         el.cycle.textContent = p ? p.points_current_cycle.toLocaleString() : '–';
         el.allTime.textContent = p ? p.points_all_time.toLocaleString() : '–';
-
         el.walletShort.textContent = hasWallet()
           ? `${shortAddress(p.wallet_address)} (${NETWORK_NAMES[p.wallet_network]})`
           : 'not set';
         el.toggle.textContent = hasWallet() ? 'Wallet' : 'Add wallet';
 
-        // Fill the wallet form from the database unless the visitor is typing in it
         if (p && !el.accountForm.contains(document.activeElement)) {
           if (p.wallet_network) el.walletNetwork.value = p.wallet_network;
           el.walletAddress.value = p.wallet_address || '';
           updateWalletHints();
         }
+
+        // Referral card
+        const linkReady = !!(p && hasWallet());
+        el.refLink.value = linkReady ? inviteLink() : 'Save a wallet to get your link';
+        el.refCopy.disabled = !linkReady;
+        el.refShare.hidden = !(linkReady && navigator.share);
+        el.refFriends.textContent = state.refStats ? state.refStats.friends_joined.toLocaleString() : '–';
+        el.refPoints.textContent = state.refStats ? state.refStats.referral_points.toLocaleString() : '–';
       }
 
-      // Everything that depends on "can this visitor earn right now, and if not, why?"
-      function renderStatus() {
-        let label, pill, tone;
+      function renderStreak() {
+        const streak = currentStreak();
+        el.streakCount.textContent = `${streak} day${streak === 1 ? '' : 's'}`;
+        el.streakNext.textContent = state.profile && hasWallet() ? `Next check-in: +${nextReward()} pts` : '';
+        const filled = Math.min(streak, 11);
+        if (el.streakPips.childElementCount !== 11) {
+          el.streakPips.innerHTML = '<li class="h-1.5 rounded-full"></li>'.repeat(11);
+        }
+        [...el.streakPips.children].forEach((pip, i) => {
+          pip.className = 'h-1.5 rounded-full ' + (i < filled ? 'bg-emerald-400' : 'bg-zinc-700');
+        });
+      }
 
-        if (state.setupError)     { label = state.setupError; pill = 'Offline'; tone = 'warn'; }
-        else if (!state.profile)  { label = 'Starting your session…'; pill = 'Connecting'; tone = 'off'; }
-        else if (!hasWallet())    { label = 'Add a payout wallet to start earning'; pill = 'Wallet needed'; tone = 'warn'; }
-        else if (capped())        { label = 'Daily limit reached. Earning resumes at 00:00 UTC'; pill = 'Limit reached'; tone = 'warn'; }
-        else if (state.claiming)  { label = 'Claiming your point…'; pill = 'Earning'; tone = 'on'; }
-        else                      { label = state.note || 'Earning your next point'; pill = 'Earning'; tone = 'on'; }
+      // The check-in button and status pill for every situation
+      function renderCheckin() {
+        let sub, btnText = 'Check in', btnEnabled = false, showBtn = true, pill, tone;
+        const waitMs = CHECKIN_UNLOCK_MS - (Date.now() - pageOpenedAt);
 
-        el.label.textContent = label;
+        if (state.setupError) {
+          sub = state.setupError; pill = 'Offline'; tone = 'warn';
+        } else if (!state.profile) {
+          sub = 'Starting your session…'; pill = 'Connecting'; tone = 'off';
+        } else if (!hasWallet()) {
+          sub = 'Add a payout wallet to start earning.'; showBtn = false; pill = 'Wallet needed'; tone = 'warn';
+        } else if (checkedInToday()) {
+          sub = (state.lastResult ? state.lastResult + ' ' : '') +
+                `Next check-in in ${untilUtcMidnight()} (00:00 UTC).`;
+          btnText = 'Checked in ✓'; pill = 'Checked in'; tone = 'on';
+        } else if (blockedNow()) {
+          sub = state.blockedToday === 'network'
+            ? `Someone on your network already checked in today. Come back in ${untilUtcMidnight()}.`
+            : `This wallet already checked in today on another device. Come back in ${untilUtcMidnight()}.`;
+          btnText = 'Come back tomorrow'; pill = 'Done today'; tone = 'warn';
+        } else if (state.checkingIn) {
+          sub = 'Checking you in…'; btnText = 'Checking in…'; pill = 'Ready'; tone = 'on';
+        } else if (waitMs > 0) {
+          sub = 'Loading sponsors… check-in unlocks in a moment.';
+          btnText = `Check in (${Math.ceil(waitMs / 1000)}s)`; pill = 'Ready'; tone = 'on';
+        } else {
+          sub = state.checkinError || `Check in now to earn ${nextReward()} points.`;
+          btnText = `Check in · +${nextReward()}`; btnEnabled = true; pill = 'Ready'; tone = 'on';
+        }
+
+        if (el.checkinSub.textContent !== sub) el.checkinSub.textContent = sub;
+        el.checkinBtn.hidden = !showBtn;
+        if (el.checkinBtn.textContent !== btnText) el.checkinBtn.textContent = btnText;
+        el.checkinBtn.disabled = !btnEnabled;
+        el.walletCta.hidden = !(state.profile && !hasWallet());
+
         el.statusText.textContent = pill;
         const pillTone = {
           on:   'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
@@ -442,18 +578,18 @@
         el.statusPill.className = 'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ' + pillTone;
         el.statusDot.className = 'h-1.5 w-1.5 rounded-full ' +
           (tone === 'on' ? 'bg-emerald-400' : tone === 'warn' ? 'bg-amber-400' : 'bg-zinc-500');
+      }
 
-        el.walletCta.hidden = !(state.profile && !hasWallet());
-        el.today.textContent = state.profile
-          ? `Today: ${state.pointsToday.toLocaleString()} / ${DAILY_CAP.toLocaleString()} points · resets 00:00 UTC`
-          : '';
-        renderProgress();
+      function render() {
+        renderProfile();
+        renderStreak();
+        renderCheckin();
       }
 
       // ================= SUPABASE =================
       if (!window.supabase) {
         state.setupError = 'Could not connect. Check your internet connection and reload.';
-        renderStatus();
+        render();
         wirePanel();
         return;
       }
@@ -488,35 +624,36 @@
               : 'Could not start your session. Reload to try again.';
           console.error('Anonymous sign-in failed:', m);
           setMessage(state.setupError, 'error');
-          renderStatus();
+          render();
         }
+      }
+
+      async function loadRefStats() {
+        const { data, error } = await client.rpc('my_referral_stats').single();
+        if (!error) { state.refStats = data; renderProfile(); }
       }
 
       async function loadProfile() {
         if (!state.user) return;
-        const [profileRes, todayRes] = await Promise.all([
-          client.from('profiles')
-            .select('wallet_network, wallet_address, points_current_cycle, points_all_time')
-            .eq('id', state.user.id)
-            .single(),
-          client.rpc('my_points_today'),
-        ]);
+        const { data, error } = await client.from('profiles')
+          .select('wallet_network, wallet_address, points_current_cycle, points_all_time, streak_count, last_checkin_date, referral_code')
+          .eq('id', state.user.id)
+          .single();
 
-        if (profileRes.error) {
-          state.setupError = isNetworkError(profileRes.error)
+        if (error) {
+          state.setupError = isNetworkError(error)
             ? NETWORK_BLOCKED_MSG
             : 'Could not load your points. Reload to try again.';
-          console.error(profileRes.error.message);
-          renderStatus();
+          console.error(error.message);
+          render();
           return;
         }
         state.setupError = null;
-        state.profile = profileRes.data;
-        state.pointsToday = todayRes.error ? 0 : todayRes.data;
-        state.limitUntil = state.pointsToday >= DAILY_CAP ? nextUtcMidnight() : 0;
-
-        renderProfile();
-        renderStatus();
+        state.profile = data;
+        // Don't let someone use their own invite link
+        if (storedRef() === data.referral_code) clearStoredRef();
+        render();
+        loadRefStats();
 
         if (!hasWallet()) {
           setMessage('Add a USDT/USDC wallet to start earning.', 'info');
@@ -526,7 +663,6 @@
 
       async function saveWallet() {
         if (!state.profile) {
-          // No session yet: say why instead of silently doing nothing
           setMessage(state.setupError || 'Still connecting to the server. Try again in a few seconds.', 'error');
           if (!state.user && !state.setupError) startSession();
           return;
@@ -566,71 +702,87 @@
         if (error) {
           setMessage(error.code === '23514'
             ? "That address doesn't match the selected network. Check both."
-            : 'Could not save your wallet. Try again.', 'error');
+            : isNetworkError(error) ? NETWORK_BLOCKED_MSG : 'Could not save your wallet. Try again.', 'error');
           console.error(error.message);
           return;
         }
 
         state.profile = { ...state.profile, ...data };
         el.walletAddress.blur();
-        renderProfile();
-        renderStatus();
+        render();
         if (firstWallet) {
-          setMessage("Wallet saved. You're earning now.", 'success');
+          setMessage('Wallet saved. You can check in now.', 'success');
           setTimeout(() => { if (hasWallet()) openPanel(false); }, 1500);
         } else {
           setMessage('Wallet updated. Future payouts go to the new address.', 'success');
         }
       }
 
-      async function claimPoint() {
-        state.claiming = true;
-        renderStatus();
+      async function checkIn() {
+        if (state.checkingIn || !state.profile) return;
+        state.checkingIn = true;
+        state.checkinError = null;
+        render();
 
-        const { data, error } = await client.rpc('increment_user_impression').single();
-
-        state.claiming = false;
-        if (!state.user) return;
+        const ref = state.profile.last_checkin_date ? null : storedRef();
+        const { data, error } = await client.rpc('daily_checkin', { p_ref: ref }).single();
+        state.checkingIn = false;
 
         if (error) {
           const msg = error.message;
-          if (msg === 'Wallet required') {
+          if (msg === 'Already checked in today') {
+            state.profile.last_checkin_date = utcDate(0);
+          } else if (msg === 'Network already checked in today') {
+            state.blockedToday = 'network'; state.blockedOn = utcDate(0);
+          } else if (msg === 'Wallet already checked in today') {
+            state.blockedToday = 'wallet'; state.blockedOn = utcDate(0);
+          } else if (msg === 'Wallet required') {
             state.profile = { ...state.profile, wallet_network: null, wallet_address: null };
-            state.activeMs = 0;
-            renderProfile();
             openPanel(true);
-          } else if (msg === 'Daily limit reached') {
-            state.pointsToday = Math.max(state.pointsToday, DAILY_CAP);
-            state.limitUntil = nextUtcMidnight();
-            state.activeMs = 0;
-          } else if (msg === 'Rate limit exceeded') {
-            // Another tab, device or visitor on the same connection is earning
-            state.rateLimitStreak += 1;
-            state.note = state.rateLimitStreak >= 2
-              ? 'Someone on your connection is already earning (another tab or device)'
-              : 'Syncing with the server…';
-            state.activeMs = INTERVAL_MS - 10000; // retry in ~10 seconds
           } else {
-            state.note = 'Claim failed. Retrying shortly';
-            state.activeMs = INTERVAL_MS - 5000;
+            console.error(msg);
+            state.checkinError = isNetworkError(error) ? NETWORK_BLOCKED_MSG : 'Check-in failed. Please try again.';
           }
-          renderStatus();
+          render();
           return;
         }
 
-        state.rateLimitStreak = 0;
-        state.note = null;
-        state.activeMs = 0;
-        state.profile.points_current_cycle = data.points_current_cycle;
-        state.profile.points_all_time = data.points_all_time;
-        state.pointsToday = data.points_today;
-        if (state.pointsToday >= DAILY_CAP) state.limitUntil = nextUtcMidnight();
-
-        renderProfile();
-        renderStatus();
-        el.announce.textContent = `You earned a point. You have ${data.points_current_cycle} this cycle.`;
+        clearStoredRef();
+        Object.assign(state.profile, {
+          points_current_cycle: data.points_current_cycle,
+          points_all_time: data.points_all_time,
+          streak_count: data.streak,
+          last_checkin_date: utcDate(0),
+        });
+        state.lastResult = `+${data.points_awarded} points!` +
+          (data.streak > 1 ? ` ${data.streak}-day streak.` : '') +
+          (data.referral_applied ? ' Your friend got their invite bonus.' : '');
+        render();
+        el.announce.textContent = `Checked in. You earned ${data.points_awarded} points.`;
         el.cycle.classList.add('scale-110');
         setTimeout(() => el.cycle.classList.remove('scale-110'), 400);
+      }
+
+      async function copyInvite() {
+        const link = inviteLink();
+        try {
+          await navigator.clipboard.writeText(link);
+        } catch {
+          el.refLink.select();
+          document.execCommand && document.execCommand('copy');
+        }
+        el.refCopy.textContent = 'Copied!';
+        setTimeout(() => { el.refCopy.textContent = 'Copy'; }, 1500);
+      }
+
+      async function shareInvite() {
+        try {
+          await navigator.share({
+            title: 'Splyt',
+            text: 'Check in daily on Splyt and get a share of the ad revenue, paid in USDT/USDC.',
+            url: inviteLink(),
+          });
+        } catch { /* user closed the share sheet */ }
       }
 
       // Session changes: new anonymous session, restored session, token refresh.
@@ -640,61 +792,29 @@
           const previousId = state.user?.id;
           state.user = session?.user ?? null;
           if (!state.user) {
-            Object.assign(state, { profile: null, pointsToday: 0, limitUntil: 0, activeMs: 0, note: null });
-            renderProfile();
-            renderStatus();
+            Object.assign(state, { profile: null, refStats: null, blockedToday: null, lastResult: null });
+            render();
             return;
           }
           if (state.user.id !== previousId) await loadProfile();
         }, 0);
       });
 
-      // ================= PROGRESS LOOP =================
-      function renderProgress() {
-        const pct = canEarn() ? Math.min(state.activeMs / INTERVAL_MS, 1) * 100 : 0;
-        el.fill.style.width = pct + '%';
-        el.bar.setAttribute('aria-valuenow', Math.round(pct));
-
-        let text = '';
-        if (canEarn()) {
-          if (document.visibilityState !== 'visible') text = 'Paused';
-          else if (state.claiming) text = '…';
-          else text = `${Math.max(Math.ceil((INTERVAL_MS - state.activeMs) / 1000), 0)}s left`;
-        }
-        if (text !== lastStatusText) { el.status.textContent = text; lastStatusText = text; }
-      }
-
-      let lastFrame = performance.now();
-      function tick(now) {
-        const delta = Math.min(now - lastFrame, 250); // cap so a sleeping tab can't dump in time
-        lastFrame = now;
-
-        if (state.limitUntil && Date.now() >= state.limitUntil) {
-          state.limitUntil = 0;
-          state.pointsToday = 0;
-          renderStatus();
-        }
-
-        if (canEarn() && document.visibilityState === 'visible' && !state.claiming) {
-          state.activeMs = Math.min(state.activeMs + delta, INTERVAL_MS);
-          if (state.activeMs >= INTERVAL_MS) claimPoint();
-        }
-        renderProgress();
-        requestAnimationFrame(tick);
-      }
-
-      document.addEventListener('visibilitychange', () => { lastFrame = performance.now(); renderProgress(); });
-
       // ================= EVENTS =================
       el.accountForm.addEventListener('submit', (e) => { e.preventDefault(); saveWallet(); });
       el.walletNetwork.addEventListener('change', updateWalletHints);
       el.walletCta.addEventListener('click', (e) => { e.stopPropagation(); openPanel(true); });
+      el.checkinBtn.addEventListener('click', checkIn);
+      el.refCopy.addEventListener('click', copyInvite);
+      el.refShare.addEventListener('click', shareInvite);
+      el.refLink.addEventListener('focus', () => el.refLink.select());
       wirePanel();
 
       updateWalletHints();
-      renderProfile();
-      renderStatus();
-      requestAnimationFrame(tick);
+      render();
+      // Refresh countdowns (unlock timer, time until next check-in, new UTC day)
+      setInterval(renderCheckin, 1000);
+      setInterval(renderStreak, 60000);
       startSession();
 
       // ================= PANEL OPEN/CLOSE =================
