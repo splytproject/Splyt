@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-zinc-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Privacy notice · Splyt</title>
+  <meta name="description" content="What data Splyt collects, including IP addresses, why, and how long it is kept." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: {
+      display: ['"Chakra Petch"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      sans: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+    } } } };
+  </script>
+  <style>
+    body { background-color: #18181b; padding-bottom: env(safe-area-inset-bottom, 0px); }
+    main h2 { font-family: "Chakra Petch", ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 1.25rem; color: #fafafa; margin-top: 2.5rem; }
+    main p, main li { line-height: 1.7; }
+    main p { margin-top: 0.75rem; }
+    main ul { margin-top: 0.75rem; padding-left: 1.25rem; list-style: disc; }
+    main li { margin-top: 0.4rem; }
+    main strong { color: #f4f4f5; font-weight: 600; }
+    main a { color: #6ee7b7; text-decoration: underline; text-underline-offset: 3px; }
+  </style>
+</head>
+<body class="min-h-screen font-sans text-zinc-300 antialiased">
+  <header class="border-b border-zinc-800" style="padding-top: env(safe-area-inset-top, 0px);">
+    <div class="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:px-6">
+      <a href="./" class="font-display text-lg font-semibold tracking-wide text-zinc-100">Splyt</a>
+      <a href="./" class="text-sm font-medium text-emerald-400 hover:text-emerald-300">← Back to dashboard</a>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+    <h1 class="font-display text-3xl font-bold text-zinc-50">Privacy notice</h1>
+    <p class="text-sm text-zinc-500">Last updated: 3 October 2026</p>
+
+    <p>
+      Splyt shares ad revenue with the people who keep the site open. We don't ask for your name,
+      email address or password. To run the site and pay you, we do need to store a small amount
+      of data, <strong>including your IP address</strong>. This page explains exactly what and why.
+    </p>
+
+    <h2>What we collect</h2>
+    <ul>
+      <li><strong>An anonymous session ID.</strong> Created automatically when you open the site and kept in your browser's local storage, so your points stay with you between visits.</li>
+      <li><strong>Your payout wallet</strong>: the network and address you enter.</li>
+      <li><strong>Your IP address.</strong> Recorded with each check-in and referral bonus, and the most recent one is also stored with your session.</li>
+      <li><strong>Earning records</strong>: your check-ins, streak, who invited you (if anyone), and your point totals.</li>
+      <li><strong>Payout records</strong>: wallet, points, amount, and the transaction hash once paid.</li>
+    </ul>
+    <p>We don't collect names, email addresses, phone numbers or passwords, and Splyt sets no tracking cookies of its own.</p>
+
+    <h2>Why we log IP addresses</h2>
+    <p>Because there are no accounts, your IP address is our main defence against abuse. We use it only to:</p>
+    <ul>
+      <li>allow one daily check-in per connection, so opening extra tabs or sessions doesn't earn more, and check that invited friends are genuinely new visitors;</li>
+      <li>automatically flag suspicious patterns, such as many sessions on one connection or one wallet earning from many connections;</li>
+      <li>review flagged activity before payouts, so honest users' shares aren't diluted by fraud.</li>
+    </ul>
+    <p>We don't use your IP address for advertising or profiling, and we don't sell or share it except with the service providers listed below.</p>
+
+    <h2>How long we keep it</h2>
+    <ul>
+      <li><strong>IP addresses</strong> are deleted automatically after <strong>90 days</strong>.</li>
+      <li><strong>Security alerts</strong>, which may contain IP addresses, are deleted after 90 days.</li>
+      <li><strong>Earning records</strong> (without IPs) and <strong>payout records</strong> are kept so payouts can be audited.</li>
+    </ul>
+
+    <h2>Who processes your data</h2>
+    <ul>
+      <li><strong>Supabase</strong> hosts our database and anonymous sessions. Data is stored in Supabase's Sydney, Australia region.</li>
+      <li><strong>GitHub Pages</strong> hosts the website and may log visits.</li>
+      <li><strong>A-ADS</strong> serves the ads on the page and may collect data under its own privacy policy.</li>
+      <li><strong>jsDelivr, the Tailwind CSS CDN and Google Fonts</strong> deliver code and fonts to your browser, which exposes your IP address to them.</li>
+    </ul>
+
+    <h2>Payouts are public</h2>
+    <p>
+      USDT and USDC payouts are blockchain transactions. The receiving address, amount and time are
+      permanently public on the blockchain and can't be deleted by us or anyone else.
+    </p>
+
+    <h2>Your choices</h2>
+    <ul>
+      <li>You can stop using Splyt at any time. Clearing your browser's site data ends your session on that device.</li>
+      <li>You can change your payout wallet at any time.</li>
+      <li>
+        To ask what we hold about you, or to have it deleted, open an issue on our
+        <a href="https://github.com/splytproject/Splyt/issues" rel="noopener">GitHub repository</a>
+        and tell us your payout wallet address (that's how we identify your data). Don't post anything else personal
+        there, since issues are public. Deleting your data before a payout means that payout can't be made.
+      </li>
+    </ul>
+
+    <h2>Changes</h2>
+    <p>If we change how we handle data, we'll update this page and the date at the top.</p>
+  </main>
+
+  <footer class="border-t border-zinc-800">
+    <div class="mx-auto max-w-3xl px-4 py-6 text-xs text-zinc-500 sm:px-6">© 2026 Splyt.</div>
+  </footer>
+</body>
+</html>
