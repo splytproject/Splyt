@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Payout calculator | Splyt</title>
+<meta name="description" content="Estimate your Splyt payout from your points, the cycle's total points, and ad revenue.">
+<link rel="stylesheet" href="content.css">
+</head>
+<body>
+<nav class="bar" aria-label="Main">
+  <a class="brand" href="./">Splyt</a>
+  <a href="guide.html">Guide</a>
+  <a href="calculator.html" aria-current="page">Calculator</a>
+  <a href="payouts.html">Payouts</a>
+</nav>
+
+<main id="main">
+  <h1>Payout calculator</h1>
+  <p class="lede">See roughly what a cycle could pay. Fill in your numbers from the dashboard. The starting values are only examples.</p>
+
+  <div class="field">
+    <label for="mine">Your points this cycle</label>
+    <input id="mine" type="number" inputmode="decimal" min="0" value="150">
+  </div>
+  <div class="field">
+    <label for="total">Total points from all users</label>
+    <span>Ask in the community or check the latest payout post.</span>
+    <input id="total" type="number" inputmode="decimal" min="0" value="50000">
+  </div>
+  <div class="field">
+    <label for="rev">Total ad revenue for the cycle (USD)</label>
+    <input id="rev" type="number" inputmode="decimal" min="0" step="0.01" value="40">
+  </div>
+
+  <div class="result" role="status" aria-live="polite">
+    <div>Estimated payout</div>
+    <div class="big" id="payout">$0.00</div>
+    <dl>
+      <dt>Your share of all points</dt><dd id="share">0%</dd>
+      <dt>User pool (50% of revenue)</dt><dd id="pool">$0.00</dd>
+    </dl>
+  </div>
+
+  <div class="note warn">
+    This is an estimate. Real payouts depend on actual ad revenue, which varies, and on how many points other users earn. Each new user lowers everyone else's share a little.
+  </div>
+
+  <div class="adslot" aria-label="Advertisement">
+    <small>Sponsored advertisement</small>
+    <iframe data-aa="2457316" src="//ad.a-ads.com/2457316?size=300x250" title="Advertisement" style="border:0;padding:0;width:300px;height:250px;overflow:hidden;display:block;margin:auto"></iframe>
+  </div>
+
+  <h2>How the formula works</h2>
+  <p>Half of ad revenue goes to the user pool. Your payout is your points divided by total points, times the pool.</p>
+  <p><code>payout = (your points / total points) x (revenue x 0.5)</code></p>
+  <p><a class="btn" href="./">Check in on the dashboard</a></p>
+</main>
+
+<footer>Estimates only. Points have no cash value outside payout cycles.</footer>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var USER_SHARE = 0.5;
+  function usd(n) { return '$' + n.toFixed(2); }
+  function update() {
+    var mine = parseFloat($('mine').value) || 0;
+    var total = parseFloat($('total').value) || 0;
+    var rev = parseFloat($('rev').value) || 0;
+    var pool = rev * USER_SHARE;
+    var share = total > 0 ? Math.min(mine / total, 1) : 0;
+    $('payout').textContent = usd(share * pool);
+    $('share').textContent = (share * 100).toFixed(2) + '%';
+    $('pool').textContent = usd(pool);
+  }
+  ['mine', 'total', 'rev'].forEach(function (id) { $(id).addEventListener('input', update); });
+  update();
+})();
+</script>
+</body>
+</html>
