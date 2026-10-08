@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Free crypto: what actually works and what's a scam | Splyt</title>
+<meta name="description" content="A realistic look at small ways to earn crypto, plus a checklist to spot scams before you sign up.">
+<link rel="stylesheet" href="content.css">
+</head>
+<body>
+<nav class="bar" aria-label="Main">
+  <a class="brand" href="./">Splyt</a>
+  <a href="guide.html" aria-current="page">Guide</a>
+  <a href="calculator.html">Calculator</a>
+  <a href="payouts.html">Payouts</a>
+</nav>
+
+<main id="main">
+  <h1>Free crypto: what actually works, and what's a scam</h1>
+  <p class="lede">You can earn small amounts of crypto without paying anything. Most of it is slow, and a lot of sites that promise more are traps. Here is how to tell them apart.</p>
+
+  <h2>Realistic ways to earn</h2>
+  <p>Amounts below are typical, not guaranteed. They change with the market and the program.</p>
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr><th>Method</th><th>What you do</th><th>Typical reward</th><th>Main risk</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ad revenue share</td><td>Check in daily, share a pool of ad income</td><td>Cents per cycle</td><td>Payout depends on ad income and how many users join</td></tr>
+        <tr><td>Faucets</td><td>Solve captchas or claim on a timer</td><td>Fractions of a cent per claim</td><td>Ad-heavy, high minimum withdrawals</td></tr>
+        <tr><td>Airdrops</td><td>Use a new protocol or hold a token</td><td>Often zero, occasionally large</td><td>Fake claim sites that drain wallets</td></tr>
+        <tr><td>Learn-to-earn</td><td>Watch lessons, answer quizzes</td><td>A few dollars of tokens</td><td>Reward tokens can lose value fast</td></tr>
+        <tr><td>Testnet tasks</td><td>Test an unreleased network</td><td>Unknown, speculative</td><td>Time spent for nothing</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <strong>Rule of thumb:</strong> if the reward looks like a salary, it is not free money. Real no-cost programs pay small amounts for small effort.
+  </div>
+
+  <div class="adslot" aria-label="Advertisement">
+    <small>Sponsored advertisement</small>
+    <iframe data-aa="2457316" src="//ad.a-ads.com/2457316?size=300x250" title="Advertisement" style="border:0;padding:0;width:300px;height:250px;overflow:hidden;display:block;margin:auto"></iframe>
+  </div>
+
+  <h2>Scam check: tick what applies</h2>
+  <p>Before you connect a wallet or share anything, go through this list for the site you are looking at.</p>
+
+  <ul class="checks" id="flags">
+    <li><label><input type="checkbox"> It asks for your seed phrase or private key.</label></li>
+    <li><label><input type="checkbox"> It asks you to send crypto first to "unlock" or "verify" a payout.</label></li>
+    <li><label><input type="checkbox"> It guarantees a fixed daily or weekly return.</label></li>
+    <li><label><input type="checkbox"> It pays mostly for recruiting people, not for the actual activity.</label></li>
+    <li><label><input type="checkbox"> There is no named team, no contact, and no privacy notice.</label></li>
+    <li><label><input type="checkbox"> There are no public proof of past payouts, or only screenshots.</label></li>
+    <li><label><input type="checkbox"> A countdown or "only 10 spots left" pushes you to act fast.</label></li>
+    <li><label><input type="checkbox"> You were sent the link by an unknown account in a DM.</label></li>
+  </ul>
+  <div class="verdict" id="verdict" role="status" aria-live="polite">Tick anything that applies to see a result.</div>
+
+  <h2>Safe habits</h2>
+  <ul>
+    <li>Use a separate wallet with little in it for anything new.</li>
+    <li>A legitimate payout site never needs your private key. Only a public address.</li>
+    <li>Read what the points or rewards are worth, and when they pay out, before you invest time.</li>
+    <li>Search the project name plus "scam" and "payout proof" before signing up.</li>
+  </ul>
+
+  <h2>Where Splyt fits</h2>
+  <p>Splyt shares 50% of its ad revenue with users based on points. Points come from daily check-ins and invites. Your payout is your share of the points in a cycle, so it grows or shrinks with ad income and the number of users. It is a small side income, not a salary. You can estimate it with the <a href="calculator.html">calculator</a> and see past cycles on the <a href="payouts.html">payouts page</a>.</p>
+  <p><a class="btn" href="./">Open the dashboard</a></p>
+</main>
+
+<footer>
+  Splyt is not financial advice. Crypto values change, and points have no cash value outside payout cycles.
+</footer>
+
+<script>
+(function () {
+  var boxes = document.querySelectorAll('#flags input');
+  var out = document.getElementById('verdict');
+  function update() {
+    var n = 0;
+    boxes.forEach(function (b) { if (b.checked) n++; });
+    out.className = 'verdict';
+    if (n === 0) { out.textContent = 'Tick anything that applies to see a result.'; return; }
+    if (n === 1) { out.textContent = 'One red flag. Look closer before you continue.'; return; }
+    if (n === 2) { out.textContent = 'Two red flags. Treat it as risky and do not connect your main wallet.'; return; }
+    out.className = 'verdict bad';
+    out.textContent = n + ' red flags. This looks like a scam. Do not sign up or send anything.';
+  }
+  boxes.forEach(function (b) { b.addEventListener('change', update); });
+})();
+</script>
+</body>
+</html>
